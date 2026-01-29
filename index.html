@@ -11,7 +11,7 @@
         /* Fallback: Jika Tailwind gagal, pakai warna ini agar tidak putih blank */
         body { 
             font-family: 'Outfit', sans-serif; 
-            background-color: #0f172a; /* Warna gelap cadangan */
+            background-color: #0f172a; 
             color: white;
         }
         
@@ -30,7 +30,7 @@
         <div id="game-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="text-slate-500 loading col-span-full">
                 Sedang menghubungi satelit GitHub...<br>
-                <small>(Pastikan internet lancar)</small>
+                <small>(Mohon tunggu sebentar)</small>
             </div>
         </div>
 
@@ -41,11 +41,11 @@
 
     <script>
         // ==========================================
-        // ✅ KONFIGURASI OTOMATIS (Sudah Diisi)
+        // ✅ KONFIGURASI YANG SUDAH DIPERBAIKI
         // ==========================================
-        const GITHUB_USERNAME = 'tanzilhuda1215';  // Username Anda
-        const REPO_NAME = 'SisLearn';              // Nama Repo Anda
-        const FOLDER_NAME = 'games';               // Folder Game
+        const GITHUB_USERNAME = 'tanzilhuda1215-source'; // Username lengkap sesuai URL
+        const REPO_NAME = 'SisLearn';                    // Nama Repo (Huruf Besar/Kecil Sesuai URL)
+        const FOLDER_NAME = 'games';                     // Folder Game
         // ==========================================
 
         async function loadGames() {
@@ -55,14 +55,14 @@
             // URL API GitHub
             const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_NAME}`;
             
-            console.log("Mengambil data dari:", apiUrl);
+            console.log("Target API:", apiUrl);
 
             try {
                 const response = await fetch(apiUrl);
                 
-                // Cek jika error 404 (Salah nama folder/repo)
+                // Cek jika error 404
                 if (response.status === 404) {
-                    throw new Error("Folder/Repo tidak ditemukan. Pastikan folder 'games' ada dan nama Repo 'SisLearn' benar.");
+                    throw new Error(`Data tidak ditemukan (404).<br>Cek URL API di Console.`);
                 }
                 if (!response.ok) throw new Error("Gagal koneksi ke GitHub.");
 
@@ -79,18 +79,22 @@
                 if (gameFiles.length === 0) {
                     container.innerHTML = `
                         <div class="col-span-full text-yellow-400 border border-yellow-600 p-4 rounded-lg">
-                            ⚠️ Folder "games" ditemukan, tapi tidak ada file .html di dalamnya.
+                            ⚠️ Folder "games" ditemukan, tapi kosong (tidak ada file .html).
                         </div>`;
                     return;
                 }
 
                 // Tampilkan Kartu Game
                 gameFiles.forEach(file => {
+                    // Merapikan judul: hapus .html dan ganti tanda strip jadi spasi
                     const title = file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase();
                     
-                    // Template Kartu
+                    // Link menuju file game
+                    // Perhatikan: Kita gunakan nama folder dan file relatif
+                    const gameLink = `${FOLDER_NAME}/${file.name}`;
+
                     const card = `
-                        <a href="${FOLDER_NAME}/${file.name}" class="group block relative bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1">
+                        <a href="${gameLink}" class="group block relative bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1">
                             <div class="text-4xl mb-4 bg-slate-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto group-hover:bg-teal-900 transition-colors">
                                 🎮
                             </div>
@@ -106,24 +110,21 @@
 
             } catch (error) {
                 console.error(error);
-                statusLabel.innerText = "Error ❌";
+                statusLabel.innerText = "Gagal ❌";
                 statusLabel.className = "text-red-500";
                 
                 container.innerHTML = `
                     <div class="col-span-full bg-red-900/50 p-6 rounded-xl border border-red-500 text-left">
-                        <h3 class="font-bold text-xl text-red-200 mb-2">🚫 Gagal Memuat Game</h3>
+                        <h3 class="font-bold text-xl text-red-200 mb-2">🚫 Masih Gagal Memuat</h3>
                         <p class="text-red-100 mb-4">${error.message}</p>
-                        <hr class="border-red-700 my-2">
-                        <small class="text-gray-300">
-                            Cek: Apakah nama repo Anda di GitHub tertulis <strong>SisLearn</strong> atau <strong>sislearn</strong>?<br>
-                            (Besar kecil huruf berpengaruh).
-                        </small>
+                        <div class="text-xs font-mono bg-black p-2 rounded text-gray-400">
+                            Target: ${GITHUB_USERNAME} / ${REPO_NAME} / ${FOLDER_NAME}
+                        </div>
                     </div>
                 `;
             }
         }
 
-        // Jalankan saat halaman siap
         loadGames();
     </script>
 
