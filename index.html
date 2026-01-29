@@ -1,34 +1,131 @@
-<script>
-        // ==========================================
-        // DAFTAR GAME MANUAL (ANTI ERROR)
-        // Cukup tulis nama file game Anda di sini
-        // ==========================================
-        const manualGameList = [
-            "space.html",
-            "glass.html",
-            // Tambahkan file baru di bawah sini pakai koma, contoh: "verb.html"
-        ];
-        const FOLDER_NAME = 'games'; 
-        // ==========================================
-
-        function loadGames() {
-            const container = document.getElementById('game-container');
-            container.innerHTML = '';
-
-            manualGameList.forEach(fileName => {
-                const title = fileName.replace('.html', '').replace(/-/g, ' ').toUpperCase();
-                
-                const card = `
-                    <a href="${FOLDER_NAME}/${fileName}" class="group block relative bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1">
-                        <div class="text-4xl mb-4 bg-slate-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto group-hover:bg-teal-900 transition-colors">
-                            🎮
-                        </div>
-                        <h2 class="text-xl font-bold mb-2 text-white group-hover:text-teal-300">${title}</h2>
-                        <p class="text-slate-400 text-sm">Klik untuk memulai.</p>
-                    </a>
-                `;
-                container.innerHTML += card;
-            });
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Game Otomatis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
+        
+        /* Fallback: Jika Tailwind gagal, pakai warna ini agar tidak putih blank */
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: #0f172a; /* Warna gelap cadangan */
+            color: white;
         }
+        
+        .loading { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="max-w-5xl w-full text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
+            Zona Belajar Pronouns
+        </h1>
+        <p class="text-slate-400 mb-12 text-lg">Daftar game diperbarui secara otomatis.</p>
+
+        <div id="game-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="text-slate-500 loading col-span-full">
+                Sedang menghubungi satelit GitHub...<br>
+                <small>(Pastikan internet lancar)</small>
+            </div>
+        </div>
+
+        <footer class="mt-16 text-slate-600 text-sm">
+            Powered by GitHub API | <span id="status-koneksi">Connecting...</span>
+        </footer>
+    </div>
+
+    <script>
+        // ==========================================
+        // ✅ KONFIGURASI OTOMATIS (Sudah Diisi)
+        // ==========================================
+        const GITHUB_USERNAME = 'tanzilhuda1215';  // Username Anda
+        const REPO_NAME = 'SisLearn';              // Nama Repo Anda
+        const FOLDER_NAME = 'games';               // Folder Game
+        // ==========================================
+
+        async function loadGames() {
+            const container = document.getElementById('game-container');
+            const statusLabel = document.getElementById('status-koneksi');
+            
+            // URL API GitHub
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_NAME}`;
+            
+            console.log("Mengambil data dari:", apiUrl);
+
+            try {
+                const response = await fetch(apiUrl);
+                
+                // Cek jika error 404 (Salah nama folder/repo)
+                if (response.status === 404) {
+                    throw new Error("Folder/Repo tidak ditemukan. Pastikan folder 'games' ada dan nama Repo 'SisLearn' benar.");
+                }
+                if (!response.ok) throw new Error("Gagal koneksi ke GitHub.");
+
+                const files = await response.json();
+                
+                // Bersihkan loading
+                container.innerHTML = '';
+                statusLabel.innerText = "Terhubung ✅";
+                statusLabel.className = "text-green-500";
+
+                // Filter hanya file .html
+                const gameFiles = files.filter(file => file.name.endsWith('.html'));
+
+                if (gameFiles.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-yellow-400 border border-yellow-600 p-4 rounded-lg">
+                            ⚠️ Folder "games" ditemukan, tapi tidak ada file .html di dalamnya.
+                        </div>`;
+                    return;
+                }
+
+                // Tampilkan Kartu Game
+                gameFiles.forEach(file => {
+                    const title = file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase();
+                    
+                    // Template Kartu
+                    const card = `
+                        <a href="${FOLDER_NAME}/${file.name}" class="group block relative bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1">
+                            <div class="text-4xl mb-4 bg-slate-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto group-hover:bg-teal-900 transition-colors">
+                                🎮
+                            </div>
+                            <h2 class="text-xl font-bold mb-2 text-white group-hover:text-teal-300">${title}</h2>
+                            <p class="text-slate-400 text-sm">Klik untuk main.</p>
+                            <div class="mt-4 text-xs font-mono text-slate-500 bg-slate-900 py-1 px-3 rounded-full inline-block">
+                                ${file.name}
+                            </div>
+                        </a>
+                    `;
+                    container.innerHTML += card;
+                });
+
+            } catch (error) {
+                console.error(error);
+                statusLabel.innerText = "Error ❌";
+                statusLabel.className = "text-red-500";
+                
+                container.innerHTML = `
+                    <div class="col-span-full bg-red-900/50 p-6 rounded-xl border border-red-500 text-left">
+                        <h3 class="font-bold text-xl text-red-200 mb-2">🚫 Gagal Memuat Game</h3>
+                        <p class="text-red-100 mb-4">${error.message}</p>
+                        <hr class="border-red-700 my-2">
+                        <small class="text-gray-300">
+                            Cek: Apakah nama repo Anda di GitHub tertulis <strong>SisLearn</strong> atau <strong>sislearn</strong>?<br>
+                            (Besar kecil huruf berpengaruh).
+                        </small>
+                    </div>
+                `;
+            }
+        }
+
+        // Jalankan saat halaman siap
         loadGames();
     </script>
+
+</body>
+</html>
