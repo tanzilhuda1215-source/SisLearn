@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Pronouns</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn {
+            transition: all 0.2s ease;
+            border: 2px solid #e2e8f0;
+        }
+
+        .option-btn:hover {
+            border-color: #667eea;
+            background-color: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            color: #166534;
+        }
+
+        .option-btn.wrong {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-card p-6 md:p-8" id="quiz-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center py-10">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Kuis Pronouns 🇬🇧</h1>
+            <p class="text-gray-600 mb-8">Uji kemampuanmu menebak kata ganti bahasa Inggris dalam 15 pertanyaan!</p>
+            <button onclick="startQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition duration-300">
+                Mulai Kuis
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-sm font-semibold text-indigo-600" id="question-counter">Soal 1 dari 15</span>
+                <span class="text-sm font-bold text-gray-500" id="score-display">Skor: 0</span>
+            </div>
+            
+            <div class="progress-bar mb-6">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+
+            <div id="question-box" class="fade-in">
+                <h2 class="text-xl font-bold text-gray-800 mb-6" id="question-text">Memuat pertanyaan...</h2>
+                
+                <div class="grid grid-cols-1 gap-3" id="options-container">
+                    <!-- Options will be injected here -->
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" onclick="nextQuestion()" class="hidden bg-gray-800 hover:bg-black text-white font-semibold py-2 px-6 rounded-lg transition">
+                    Lanjut →
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden text-center py-10">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Selesai! 🎉</h2>
+            <p class="text-lg text-gray-600 mb-6">Kamu telah menyelesaikan semua tantangan.</p>
+            
+            <div class="text-5xl font-bold text-indigo-600 mb-8" id="final-score">0 / 15</div>
+            
+            <div id="feedback-text" class="mb-8 font-semibold text-gray-700"></div>
+
+            <button onclick="restartQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition duration-300">
+                Ulangi Kuis
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: '"She" dalam bahasa Indonesia artinya adalah....', options: ["Dia (laki-laki)", "Dia (perempuan)", "Mereka", "Kamu"], correct: 1 },
+            { q: '"They" memiliki arti....', options: ["Kita", "Kami", "Mereka", "Dia (benda)"], correct: 2 },
+            { q: 'Jika kamu ingin mengatakan "Saya" dalam bahasa Inggris, maka kata yang digunakan adalah....', options: ["You", "He", "I", "We"], correct: 2 },
+            { q: 'Kata ganti "He" digunakan untuk menyebut....', options: ["Dia (laki-laki)", "Dia (perempuan)", "Dia (benda)", "Saya"], correct: 0 },
+            { q: '"We" dalam bahasa Indonesia berarti....', options: ["Mereka", "Kamu", "Kami/Kita", "Dia (laki-laki)"], correct: 2 },
+            { q: 'Kata ganti yang tepat untuk menyebut benda, binatang, atau bayi yang netral adalah....', options: ["She", "It", "He", "You"], correct: 1 },
+            { q: '"You" artinya adalah....', options: ["Saya", "Mereka", "Dia (perempuan)", "Kamu/Anda"], correct: 3 },
+            { q: 'Apa bahasa Inggris dari "Dia (perempuan)"?', options: ["He", "She", "It", "They"], correct: 1 },
+            { q: 'Apa bahasa Inggris dari "Mereka"?', options: ["We", "You", "They", "I"], correct: 2 },
+            { q: 'Apa bahasa Inggris dari "Kami atau Kita"?', options: ["We", "They", "You", "He"], correct: 0 },
+            { q: 'Apa bahasa Inggris dari "Dia (laki-laki)"?', options: ["She", "It", "He", "I"], correct: 2 },
+            { q: '"It" artinya adalah....', options: ["Saya", "Dia (benda/binatang/bayi netral)", "Mereka", "Kita"], correct: 1 },
+            { q: 'Jika kamu berbicara dengan orang lain secara langsung, kamu memanggilnya....', options: ["I", "You", "He", "She"], correct: 1 },
+            { q: 'Kata ganti "I" selalu merujuk pada....', options: ["Orang lain", "Diri sendiri (Saya/Aku)", "Benda", "Perempuan"], correct: 1 },
+            { q: 'Manakah pasangan yang SALAH di bawah ini?', options: ["I = Saya", "They = Mereka", "He = Dia (perempuan)", "We = Kami"], correct: 2 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let canAnswer = true;
+
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const questionCounter = document.getElementById('question-counter');
+        const scoreDisplay = document.getElementById('score-display');
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            canAnswer = true;
+            nextBtn.classList.add('hidden');
+            const currentQuestion = questions[currentQuestionIndex];
+            
+            questionText.innerText = currentQuestion.q;
+            questionCounter.innerText = `Soal ${currentQuestionIndex + 1} dari ${questions.length}`;
+            scoreDisplay.innerText = `Skor: ${score}`;
+            progressFill.style.width = `${((currentQuestionIndex) / questions.length) * 100}%`;
+
+            optionsContainer.innerHTML = '';
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.className = 'option-btn w-full text-left p-4 rounded-xl font-medium text-gray-700 bg-white';
+                button.onclick = () => checkAnswer(index, button);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedIndex, button) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const correctIndex = questions[currentQuestionIndex].correct;
+            const buttons = optionsContainer.getElementsByTagName('button');
+
+            if (selectedIndex === correctIndex) {
+                score++;
+                button.classList.add('correct');
+            } else {
+                button.classList.add('wrong');
+                buttons[correctIndex].classList.add('correct');
+            }
+
+            scoreDisplay.innerText = `Skor: ${score}`;
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
+            
+            let feedback = "";
+            if (score === 15) feedback = "Luar Biasa! Kamu hafal semuanya! 🌟";
+            else if (score >= 10) feedback = "Bagus sekali! Sedikit lagi sempurna. 👍";
+            else if (score >= 5) feedback = "Cukup baik, ayo tingkatkan lagi belajarnya! 📚";
+            else feedback = "Jangan menyerah, coba ulangi lagi ya! 💪";
+            
+            document.getElementById('feedback-text').innerText = feedback;
+        }
+
+        function restartQuiz() {
+            resultScreen.classList.add('hidden');
+            startQuiz();
+        }
+    </script>
+</body>
+</html>

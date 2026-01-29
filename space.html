@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pronouns Space Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;600&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            color: white;
+        }
+
+        .space-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border: 2px solid #38bdf8;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+            width: 95%;
+            max-width: 550px;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .option-btn {
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid #475569;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .correct {
+            background: rgba(34, 197, 94, 0.3) !important;
+            border-color: #22c55e !important;
+            color: #4ade80;
+        }
+
+        .wrong {
+            background: rgba(239, 68, 68, 0.3) !important;
+            border-color: #ef4444 !important;
+            color: #f87171;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="space-card p-6 md:p-10 text-center" id="game-container">
+        
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <div class="mb-6">
+                <span class="text-6xl mb-4 inline-block animate-pulse-slow">🚀</span>
+                <h1 class="text-3xl md:text-4xl font-bold neon-text mb-2">PRONOUNS GALAXY</h1>
+                <p class="text-blue-300 text-lg uppercase tracking-widest">Misi: Kuasai Kata Ganti</p>
+            </div>
+            <div class="bg-slate-900/50 p-4 rounded-lg mb-8 text-left text-sm text-gray-300 border border-slate-700">
+                <p>• 15 Pertanyaan Menantang</p>
+                <p>• Jawab dengan Santai Tanpa Waktu</p>
+                <p>• Kumpulkan Bintang untuk Skor Tertinggi</p>
+            </div>
+            <button onclick="startGame()" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all active:scale-95 uppercase tracking-widest">
+                Luncurkan Misi
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-left">
+                    <p class="text-xs text-blue-400 uppercase">Koordinat Soal</p>
+                    <p class="text-xl font-bold neon-text" id="q-number">01/15</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-blue-400 uppercase">Power Score</p>
+                    <p class="text-xl font-bold text-yellow-400" id="current-score">0</p>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-bold mb-8 min-h-[80px] flex items-center justify-center" id="question-text">
+                Menghubungkan ke satelit...
+            </h2>
+
+            <div class="grid grid-cols-1 gap-4" id="options-grid">
+                <!-- Options here -->
+            </div>
+
+            <button id="next-btn" onclick="nextQuestion()" class="hidden mt-8 w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-lg font-bold transition-all animate-bounce">
+                LANJUT KE SEKTOR BERIKUTNYA →
+            </button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden">
+            <h2 class="text-4xl font-bold neon-text mb-4" id="rank-title">MISSION COMPLETE</h2>
+            <div class="text-6xl mb-6" id="rank-emoji">👨‍🚀</div>
+            
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-blue-500/30 mb-8">
+                <p class="text-blue-300 uppercase tracking-tighter mb-1">Total Skor Kamu</p>
+                <p class="text-5xl font-bold text-white mb-2" id="final-score">0</p>
+                <p class="text-sm text-gray-400" id="accuracy-text">Akurasi: 0%</p>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-transparent border-2 border-sky-500 text-sky-400 hover:bg-sky-500 hover:text-white font-bold py-4 rounded-xl transition-all mb-4">
+                REBOOT MISI
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const questions = [
+            { q: 'Apa arti dari kata "She"?', a: ["Dia (laki-laki)", "Dia (perempuan)", "Mereka", "Kamu"], c: 1 },
+            { q: 'Pilih arti yang tepat untuk "They":', a: ["Kita", "Kami", "Mereka", "Dia (benda)"], c: 2 },
+            { q: 'Bahasa Inggris dari "Saya/Aku" adalah...', a: ["You", "He", "I", "We"], c: 2 },
+            { q: 'Gunakan "He" jika kamu merujuk pada...', a: ["Dia (laki-laki)", "Dia (perempuan)", "Benda mati", "Diri sendiri"], c: 0 },
+            { q: 'Arti dari "We" adalah...', a: ["Mereka", "Kamu", "Kami/Kita", "Dia"], c: 2 },
+            { q: 'Kata ganti untuk benda atau binatang (Netral):', a: ["She", "It", "He", "You"], c: 1 },
+            { q: 'Arti dari "You" adalah...', a: ["Saya", "Mereka", "Kita", "Kamu/Anda"], c: 3 },
+            { q: 'Terjemahkan: "Dia (perempuan)"', a: ["He", "She", "It", "They"], c: 1 },
+            { q: 'Terjemahkan: "Mereka"', a: ["We", "You", "They", "I"], c: 2 },
+            { q: 'Terjemahkan: "Kami/Kita"', a: ["We", "They", "You", "He"], c: 0 },
+            { q: 'Terjemahkan: "Dia (laki-laki)"', a: ["She", "It", "He", "I"], c: 2 },
+            { q: 'Apa arti dari "It"?', a: ["Saya", "Benda/Binatang", "Mereka", "Kita"], c: 1 },
+            { q: 'Panggilan untuk lawan bicara (orang kedua):', a: ["I", "You", "He", "She"], c: 1 },
+            { q: 'Kata ganti "I" merujuk pada...', a: ["Orang lain", "Diri sendiri", "Benda", "Banyak orang"], c: 1 },
+            { q: 'Manakah yang SALAH?', a: ["I = Saya", "They = Mereka", "He = Dia (perempuan)", "We = Kami"], c: 2 }
+        ];
+
+        let idx = 0;
+        let score = 0;
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (idx >= questions.length) return showResult();
+            
+            const data = questions[idx];
+            document.getElementById('q-number').innerText = `${String(idx + 1).padStart(2, '0')}/${questions.length}`;
+            document.getElementById('question-text').innerText = data.q;
+            document.getElementById('next-btn').classList.add('hidden');
+            
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            
+            data.a.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-xl font-semibold text-gray-200';
+                btn.innerText = `${String.fromCharCode(65 + i)}. ${opt}`;
+                btn.onclick = () => checkAnswer(i, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(choice, btn) {
+            const correct = questions[idx].c;
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(b => b.disabled = true);
+
+            if (choice === correct) {
+                score++;
+                btn.classList.add('correct');
+                document.getElementById('current-score').innerText = score;
+            } else {
+                btn.classList.add('wrong');
+                buttons[correct].classList.add('correct');
+            }
+            
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            idx++;
+            showQuestion();
+        }
+
+        function showResult() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            const finalScore = document.getElementById('final-score');
+            finalScore.innerText = score;
+            
+            const accuracy = Math.round((score / questions.length) * 100);
+            document.getElementById('accuracy-text').innerText = `Akurasi: ${accuracy}%`;
+
+            const title = document.getElementById('rank-title');
+            const emoji = document.getElementById('rank-emoji');
+
+            if (score === 15) {
+                title.innerText = "GALAXY MASTER";
+                emoji.innerText = "👑";
+            } else if (score >= 10) {
+                title.innerText = "ELITE ASTRONAUT";
+                emoji.innerText = "👨‍🚀";
+            } else if (score >= 5) {
+                title.innerText = "SPACE EXPLORER";
+                emoji.innerText = "🛸";
+            } else {
+                title.innerText = "CADET IN TRAINING";
+                emoji.innerText = "🛠️";
+            }
+        }
+    </script>
+</body>
+</html>
