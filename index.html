@@ -3,77 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Game Keren</title>
+    <title>Portal Game + Riwayat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
         body { font-family: 'Outfit', sans-serif; }
         .loading { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        
+        /* Scrollbar cantik untuk tabel */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
     </style>
 </head>
-<body class="bg-[#0f172a] text-white min-h-screen flex flex-col items-center justify-center p-6">
+<body class="bg-[#0f172a] text-white min-h-screen flex flex-col p-4 md:p-8">
 
-    <div class="max-w-6xl w-full text-center">
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-            Zona Belajar Pronouns
-        </h1>
-        <p class="text-slate-400 mb-12 text-lg">Pilih petualangan belajarmu hari ini!</p>
+    <div class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-2">
+            <header class="mb-8">
+                <h1 class="text-4xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
+                    Zona Belajar Pronouns
+                </h1>
+                <p class="text-slate-400">Pilih game dan cetak rekor barumu!</p>
+            </header>
 
-        <div id="game-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="col-span-full text-slate-500 loading pt-10">
-                <div class="text-4xl mb-2">📡</div>
-                Sedang mengunduh data game...
+            <div id="game-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-full text-slate-500 loading pt-10 text-center">
+                    📡 Menghubungkan ke satelit...
+                </div>
             </div>
         </div>
 
-        <footer class="mt-16 text-slate-600 text-sm">
-            Powered by GitHub API | <span id="status-koneksi">Connecting...</span>
-        </footer>
+        <div class="lg:col-span-1">
+            <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 sticky top-8 h-[85vh] flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-yellow-400 flex items-center gap-2">
+                        📜 Riwayat Misi
+                    </h2>
+                    <button onclick="clearHistory()" class="text-xs text-slate-500 hover:text-red-400 transition-colors">
+                        Hapus Semua
+                    </button>
+                </div>
+
+                <div class="overflow-y-auto flex-grow pr-2" id="history-container">
+                    <p class="text-slate-500 text-sm text-center mt-10">Belum ada misi yang diselesaikan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-modal" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-900 w-full max-w-4xl h-[90vh] rounded-2xl border border-slate-600 flex flex-col relative shadow-2xl">
+            <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800 rounded-t-2xl">
+                <h3 id="modal-title" class="font-bold text-lg">Sedang Bermain...</h3>
+                <button onclick="closeGame()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-1 rounded-lg text-sm font-bold transition-colors">
+                    Tutup Game ❌
+                </button>
+            </div>
+            
+            <iframe id="game-frame" src="" class="w-full flex-grow rounded-b-2xl bg-[#0f172a]" frameborder="0"></iframe>
+        </div>
     </div>
 
     <script>
         // ==========================================
-        // 1. KONFIGURASI GITHUB
+        // 1. KONFIGURASI (SESUAIKAN DATA ANDA)
         // ==========================================
         const GITHUB_USERNAME = 'tanzilhuda1215-source'; 
         const REPO_NAME = 'SisLearn';                    
         const FOLDER_NAME = 'games';                     
-        
-        // ==========================================
-        // 2. DAFTAR INFO GAME (EDIT DI SINI SAJA!)
-        // ==========================================
-        // Tulis nama file-nya persis, lalu isi data yang mau ditampilkan.
-        
+
         const GAME_INFO = {
-            "space.html": {
-                icon: "🚀",
-                title: "Space Adventure",
-                desc: "Belajar sambil menjelajah galaksi. Tampilan gelap dan futuristik."
-            },
-            "glass.html": {
-                icon: "💎",
-                title: "Glass Mode",
-                desc: "Tampilan bersih, modern, dan elegan. Fokus pada materi."
-            },
-            // Nanti kalau ada game baru, tambahkan di sini:
-            // "verb.html": { icon: "✍️", title: "Verb Master", desc: "..." },
+            "space.html": { icon: "🚀", title: "Space Adventure", desc: "Menjelajah galaksi." },
+            "glass.html": { icon: "💎", title: "Glass Mode", desc: "Tampilan modern & elegan." },
+            "Pronouncation-Games.html": { icon: "🗣️", title: "Pronunciation", desc: "Latihan pengucapan." }
         };
         // ==========================================
 
+        let spyInterval = null; // Variabel untuk "Mata-mata"
+        let currentGameTitle = "";
+
+        // --- FUNGSI UTAMA: LOAD GAME DARI GITHUB ---
         async function loadGames() {
             const container = document.getElementById('game-container');
-            const statusLabel = document.getElementById('status-koneksi');
-            
-            // URL API GitHub
             const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_NAME}`;
 
             try {
                 const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error("Gagal koneksi ke GitHub.");
                 const files = await response.json();
-                
-                // Filter hanya file .html
                 const gameFiles = files.filter(file => file.name.endsWith('.html'));
 
                 if (gameFiles.length === 0) {
@@ -81,44 +101,28 @@
                     return;
                 }
 
-                container.innerHTML = ''; // Bersihkan loading
-                statusLabel.innerText = "Siap Main 🚀";
-                statusLabel.className = "text-green-500";
+                container.innerHTML = ''; 
 
-                // Loop setiap file yang ditemukan di folder
                 gameFiles.forEach(file => {
-                    
-                    // Cek apakah data game ada di GAME_INFO (Bagian 2 di atas)
-                    // Jika ada, pakai datanya. Jika tidak ada, pakai data default (asal-asalan).
-                    
                     let info = GAME_INFO[file.name];
-                    
-                    // Data Default (jika lupa mendaftarkan di GAME_INFO)
                     if (!info) {
-                        info = {
-                            icon: "🎮",
-                            title: file.name.replace('.html', '').toUpperCase(),
-                            desc: "Game interaktif seru untuk melatih kemampuan bahasa Inggris kamu."
-                        };
+                        info = { icon: "🎮", title: file.name.replace('.html', '').toUpperCase(), desc: "Game Seru" };
                     }
-
-                    // Pilihan warna tombol acak
-                    const btnColors = ['bg-blue-600 hover:bg-blue-500', 'bg-purple-600 hover:bg-purple-500', 'bg-teal-600 hover:bg-teal-500'];
-                    const randomColor = btnColors[Math.floor(Math.random() * btnColors.length)];
-
-                    // Buat Kartu
+                    
+                    // Kita ubah tombolnya bukan href biasa, tapi memanggil fungsi openGame()
                     const card = `
-                        <div class="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col items-center text-center hover:-translate-y-2 transition-transform duration-300 shadow-2xl hover:shadow-blue-900/20">
-                            <div class="text-6xl mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 hover:border-blue-500 transition-all hover:-translate-y-1 flex items-start gap-4 shadow-lg group">
+                            <div class="text-4xl bg-slate-700 w-16 h-16 rounded-lg flex items-center justify-center group-hover:bg-blue-900 transition-colors shrink-0">
                                 ${info.icon}
                             </div>
-                            <h2 class="text-2xl font-bold text-white mb-3">${info.title}</h2>
-                            <p class="text-slate-400 text-sm mb-8 leading-relaxed">
-                                ${info.desc}
-                            </p>
-                            <a href="${FOLDER_NAME}/${file.name}" class="${randomColor} text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 w-full">
-                                Mulai Misi
-                            </a>
+                            <div class="flex-grow">
+                                <h2 class="text-xl font-bold text-white mb-1 group-hover:text-blue-300">${info.title}</h2>
+                                <p class="text-slate-400 text-xs mb-4 line-clamp-2">${info.desc}</p>
+                                <button onclick="openGame('${FOLDER_NAME}/${file.name}', '${info.title}')" 
+                                   class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-6 rounded-full w-full transition-all active:scale-95">
+                                    Main Sekarang ▶
+                                </button>
+                            </div>
                         </div>
                     `;
                     container.innerHTML += card;
@@ -126,12 +130,138 @@
 
             } catch (error) {
                 console.error(error);
-                statusLabel.innerText = "Error ❌";
-                container.innerHTML = `<div class="col-span-full text-red-500">Error: ${error.message}</div>`;
+                container.innerHTML = `<div class="col-span-full text-red-500">Gagal memuat: ${error.message}</div>`;
             }
         }
 
+        // --- FUNGSI BUKA GAME (POPUP) ---
+        function openGame(url, title) {
+            const modal = document.getElementById('game-modal');
+            const iframe = document.getElementById('game-frame');
+            
+            document.getElementById('modal-title').innerText = "Sedang bermain: " + title;
+            currentGameTitle = title;
+            
+            iframe.src = url; // Muat game di dalam iframe
+            modal.classList.remove('hidden'); // Tampilkan modal
+            
+            // Aktifkan MATA-MATA (Spy)
+            startSpying();
+        }
+
+        function closeGame() {
+            const modal = document.getElementById('game-modal');
+            const iframe = document.getElementById('game-frame');
+            
+            modal.classList.add('hidden');
+            iframe.src = ""; // Stop game
+            clearInterval(spyInterval); // Stop mata-mata
+            loadHistory(); // Refresh riwayat (siapa tau ada data baru)
+        }
+
+        // --- TEKNIK MATA-MATA (INTIP SKOR) ---
+        function startSpying() {
+            clearInterval(spyInterval);
+            let scoreCaptured = false;
+
+            spyInterval = setInterval(() => {
+                if(scoreCaptured) return;
+
+                const iframe = document.getElementById('game-frame');
+                
+                // Cek apakah isi iframe bisa dibaca (harus satu domain)
+                try {
+                    const gameDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    if (gameDoc) {
+                        // 1. Cari elemen layar hasil (biasanya id="result-screen")
+                        const resultScreen = gameDoc.getElementById('result-screen');
+                        
+                        // 2. Jika layar hasil muncul (kelas 'hidden' hilang)
+                        if (resultScreen && !resultScreen.classList.contains('hidden')) {
+                            
+                            // 3. Cari elemen skor (biasanya id="final-score")
+                            const scoreEl = gameDoc.getElementById('final-score');
+                            
+                            if (scoreEl) {
+                                const finalScore = scoreEl.innerText;
+                                saveToHistory(currentGameTitle, finalScore);
+                                scoreCaptured = true; // Stop spy agar tidak simpan dobel
+                                clearInterval(spyInterval);
+                                alert(`🎉 Misi Selesai!\nSkor ${finalScore} telah disimpan ke riwayat.`);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Biasanya error karena iframe belum full loading, abaikan saja
+                }
+            }, 1000); // Cek setiap 1 detik
+        }
+
+        // --- SISTEM RIWAYAT (LOCAL STORAGE) ---
+        function saveToHistory(game, score) {
+            const now = new Date();
+            // Format Tanggal: Senin, 20 Jan 2024
+            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
+            // Format Jam: 14:30
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            const newEntry = {
+                game: game,
+                score: score,
+                date: dateStr,
+                time: timeStr,
+                timestamp: now.getTime() // untuk sorting
+            };
+
+            // Ambil data lama, tambah data baru, simpan
+            let history = JSON.parse(localStorage.getItem('gameHistory') || '[]');
+            history.unshift(newEntry); // Tambah ke paling atas
+            localStorage.setItem('gameHistory', JSON.stringify(history));
+            
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const container = document.getElementById('history-container');
+            const history = JSON.parse(localStorage.getItem('gameHistory') || '[]');
+
+            if (history.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Belum ada misi selesai.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            history.forEach(item => {
+                const itemHTML = `
+                    <div class="mb-3 bg-slate-700/50 p-3 rounded-lg border-l-4 border-blue-500 animate-pulse-once">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-sm text-white">${item.game}</h4>
+                                <p class="text-xs text-slate-400">📅 ${item.date} • ⏰ ${item.time}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-xl font-bold text-yellow-400">${item.score}</span>
+                                <span class="text-[10px] text-slate-400 uppercase">Poin</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += itemHTML;
+            });
+        }
+
+        function clearHistory() {
+            if(confirm("Hapus semua riwayat permainan?")) {
+                localStorage.removeItem('gameHistory');
+                loadHistory();
+            }
+        }
+
+        // Jalankan saat awal
         loadGames();
+        loadHistory();
+
     </script>
 </body>
 </html>
