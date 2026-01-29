@@ -3,34 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Game Otomatis</title>
+    <title>Portal Game Keren</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
-        
-        /* Fallback: Jika Tailwind gagal, pakai warna ini agar tidak putih blank */
-        body { 
-            font-family: 'Outfit', sans-serif; 
-            background-color: #0f172a; 
-            color: white;
-        }
-        
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+        body { font-family: 'Outfit', sans-serif; }
         .loading { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-6">
+<body class="bg-[#0f172a] text-white min-h-screen flex flex-col items-center justify-center p-6">
 
-    <div class="max-w-5xl w-full text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
+    <div class="max-w-6xl w-full text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
             Zona Belajar Pronouns
         </h1>
-        <p class="text-slate-400 mb-12 text-lg">Daftar game diperbarui secara otomatis.</p>
+        <p class="text-slate-400 mb-12 text-lg">Pilih petualangan belajarmu hari ini!</p>
 
-        <div id="game-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="text-slate-500 loading col-span-full">
-                Sedang menghubungi satelit GitHub...<br>
-                <small>(Mohon tunggu sebentar)</small>
+        <div id="game-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="col-span-full text-slate-500 loading pt-10">
+                <div class="text-4xl mb-2">📡</div>
+                Sedang mengunduh data game...
             </div>
         </div>
 
@@ -41,11 +34,31 @@
 
     <script>
         // ==========================================
-        // ✅ KONFIGURASI YANG SUDAH DIPERBAIKI
+        // 1. KONFIGURASI GITHUB
         // ==========================================
-        const GITHUB_USERNAME = 'tanzilhuda1215-source'; // Username lengkap sesuai URL
-        const REPO_NAME = 'SisLearn';                    // Nama Repo (Huruf Besar/Kecil Sesuai URL)
-        const FOLDER_NAME = 'games';                     // Folder Game
+        const GITHUB_USERNAME = 'tanzilhuda1215-source'; 
+        const REPO_NAME = 'SisLearn';                    
+        const FOLDER_NAME = 'games';                     
+        
+        // ==========================================
+        // 2. DAFTAR INFO GAME (EDIT DI SINI SAJA!)
+        // ==========================================
+        // Tulis nama file-nya persis, lalu isi data yang mau ditampilkan.
+        
+        const GAME_INFO = {
+            "space.html": {
+                icon: "🚀",
+                title: "Space Adventure",
+                desc: "Belajar sambil menjelajah galaksi. Tampilan gelap dan futuristik."
+            },
+            "glass.html": {
+                icon: "💎",
+                title: "Glass Mode",
+                desc: "Tampilan bersih, modern, dan elegan. Fokus pada materi."
+            },
+            // Nanti kalau ada game baru, tambahkan di sini:
+            // "verb.html": { icon: "✍️", title: "Verb Master", desc: "..." },
+        };
         // ==========================================
 
         async function loadGames() {
@@ -54,79 +67,71 @@
             
             // URL API GitHub
             const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_NAME}`;
-            
-            console.log("Target API:", apiUrl);
 
             try {
                 const response = await fetch(apiUrl);
-                
-                // Cek jika error 404
-                if (response.status === 404) {
-                    throw new Error(`Data tidak ditemukan (404).<br>Cek URL API di Console.`);
-                }
                 if (!response.ok) throw new Error("Gagal koneksi ke GitHub.");
-
                 const files = await response.json();
                 
-                // Bersihkan loading
-                container.innerHTML = '';
-                statusLabel.innerText = "Terhubung ✅";
-                statusLabel.className = "text-green-500";
-
                 // Filter hanya file .html
                 const gameFiles = files.filter(file => file.name.endsWith('.html'));
 
                 if (gameFiles.length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full text-yellow-400 border border-yellow-600 p-4 rounded-lg">
-                            ⚠️ Folder "games" ditemukan, tapi kosong (tidak ada file .html).
-                        </div>`;
+                    container.innerHTML = '<div class="col-span-full text-red-400">Tidak ada game ditemukan.</div>';
                     return;
                 }
 
-                // Tampilkan Kartu Game
-                gameFiles.forEach(file => {
-                    // Merapikan judul: hapus .html dan ganti tanda strip jadi spasi
-                    const title = file.name.replace('.html', '').replace(/-/g, ' ').toUpperCase();
-                    
-                    // Link menuju file game
-                    // Perhatikan: Kita gunakan nama folder dan file relatif
-                    const gameLink = `${FOLDER_NAME}/${file.name}`;
+                container.innerHTML = ''; // Bersihkan loading
+                statusLabel.innerText = "Siap Main 🚀";
+                statusLabel.className = "text-green-500";
 
+                // Loop setiap file yang ditemukan di folder
+                gameFiles.forEach(file => {
+                    
+                    // Cek apakah data game ada di GAME_INFO (Bagian 2 di atas)
+                    // Jika ada, pakai datanya. Jika tidak ada, pakai data default (asal-asalan).
+                    
+                    let info = GAME_INFO[file.name];
+                    
+                    // Data Default (jika lupa mendaftarkan di GAME_INFO)
+                    if (!info) {
+                        info = {
+                            icon: "🎮",
+                            title: file.name.replace('.html', '').toUpperCase(),
+                            desc: "Game interaktif seru untuk melatih kemampuan bahasa Inggris kamu."
+                        };
+                    }
+
+                    // Pilihan warna tombol acak
+                    const btnColors = ['bg-blue-600 hover:bg-blue-500', 'bg-purple-600 hover:bg-purple-500', 'bg-teal-600 hover:bg-teal-500'];
+                    const randomColor = btnColors[Math.floor(Math.random() * btnColors.length)];
+
+                    // Buat Kartu
                     const card = `
-                        <a href="${gameLink}" class="group block relative bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1">
-                            <div class="text-4xl mb-4 bg-slate-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto group-hover:bg-teal-900 transition-colors">
-                                🎮
+                        <div class="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col items-center text-center hover:-translate-y-2 transition-transform duration-300 shadow-2xl hover:shadow-blue-900/20">
+                            <div class="text-6xl mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                                ${info.icon}
                             </div>
-                            <h2 class="text-xl font-bold mb-2 text-white group-hover:text-teal-300">${title}</h2>
-                            <p class="text-slate-400 text-sm">Klik untuk main.</p>
-                            <div class="mt-4 text-xs font-mono text-slate-500 bg-slate-900 py-1 px-3 rounded-full inline-block">
-                                ${file.name}
-                            </div>
-                        </a>
+                            <h2 class="text-2xl font-bold text-white mb-3">${info.title}</h2>
+                            <p class="text-slate-400 text-sm mb-8 leading-relaxed">
+                                ${info.desc}
+                            </p>
+                            <a href="${FOLDER_NAME}/${file.name}" class="${randomColor} text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 w-full">
+                                Mulai Misi
+                            </a>
+                        </div>
                     `;
                     container.innerHTML += card;
                 });
 
             } catch (error) {
                 console.error(error);
-                statusLabel.innerText = "Gagal ❌";
-                statusLabel.className = "text-red-500";
-                
-                container.innerHTML = `
-                    <div class="col-span-full bg-red-900/50 p-6 rounded-xl border border-red-500 text-left">
-                        <h3 class="font-bold text-xl text-red-200 mb-2">🚫 Masih Gagal Memuat</h3>
-                        <p class="text-red-100 mb-4">${error.message}</p>
-                        <div class="text-xs font-mono bg-black p-2 rounded text-gray-400">
-                            Target: ${GITHUB_USERNAME} / ${REPO_NAME} / ${FOLDER_NAME}
-                        </div>
-                    </div>
-                `;
+                statusLabel.innerText = "Error ❌";
+                container.innerHTML = `<div class="col-span-full text-red-500">Error: ${error.message}</div>`;
             }
         }
 
         loadGames();
     </script>
-
 </body>
 </html>
