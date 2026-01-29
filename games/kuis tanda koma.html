@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Tanda Koma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-option {
+            transition: all 0.2s ease;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-option:hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            transform: translateY(-2px);
+        }
+
+        .btn-option.correct {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+
+        .btn-option.wrong {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex items-center justify-center">
+
+    <div id="app" class="w-full max-w-2xl card p-6 md:p-10">
+        <!-- Layar Mulai -->
+        <div id="start-screen" class="text-center">
+            <div class="mb-6 text-6xl">📝</div>
+            <h1 class="text-3xl font-bold text-blue-800 mb-4">Kuis Tanda Koma (,)</h1>
+            <p class="text-gray-600 mb-8 leading-relaxed">
+                Mari uji pemahamanmu tentang penggunaan tanda koma untuk rincian, kata hubung <b>sedangkan</b>, dan kata hubung <b>tetapi</b>!
+            </p>
+            <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg transform transition active:scale-95">
+                Mulai Belajar & Kuis
+            </button>
+        </div>
+
+        <!-- Layar Materi -->
+        <div id="lesson-screen" class="hidden">
+            <h2 class="text-2xl font-bold text-blue-800 mb-4 flex items-center">
+                <span class="mr-2">📖</span> Materi Singkat
+            </h2>
+            <div class="space-y-4 text-gray-700 mb-8">
+                <div class="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-500">
+                    <p><b>1. Rincian:</b> Digunakan untuk memisahkan lebih dari dua unsur.</p>
+                    <p class="text-sm italic mt-1">Contoh: apel, jeruk, dan mangga.</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-500">
+                    <p><b>2. "Sedangkan":</b> Letakkan koma sebelum kata ini.</p>
+                    <p class="text-sm italic mt-1">Contoh: Budi lari, sedangkan Iwan jalan.</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-500">
+                    <p><b>3. "Tetapi":</b> Letakkan koma sebelum kata ini.</p>
+                    <p class="text-sm italic mt-1">Contoh: Ia kaya, tetapi tidak sombong.</p>
+                </div>
+            </div>
+            <button onclick="showQuestion()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow transition">
+                Siap, Mulai Pertanyaan!
+            </button>
+        </div>
+
+        <!-- Layar Pertanyaan -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-sm font-semibold text-blue-600" id="progress-text">Soal 1 dari 5</span>
+                <span class="text-sm font-semibold text-gray-500" id="score-text">Skor: 0</span>
+            </div>
+            <div class="progress-bar mb-8">
+                <div id="progress-fill" class="progress-fill" style="width: 20%"></div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-800 mb-6" id="question-text">Memuat pertanyaan...</h3>
+            
+            <div class="grid gap-4" id="options-container">
+                <!-- Tombol pilihan akan muncul di sini -->
+            </div>
+            
+            <div id="feedback" class="mt-6 text-center font-bold hidden p-3 rounded-lg"></div>
+            
+            <button id="next-btn" onclick="nextQuestion()" class="mt-8 w-full bg-gray-800 hover:bg-black text-white font-bold py-3 rounded-xl shadow transition hidden">
+                Selanjutnya →
+            </button>
+        </div>
+
+        <!-- Layar Hasil -->
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-3xl font-bold text-blue-800 mb-2">Selesai!</h2>
+            <p class="text-gray-600 mb-6">Berikut hasil perjuanganmu:</p>
+            
+            <div class="inline-block p-8 bg-blue-50 rounded-full mb-6">
+                <span class="text-5xl font-bold text-blue-600" id="final-score">0</span>
+                <span class="text-2xl text-blue-400">/100</span>
+            </div>
+            
+            <div id="result-msg" class="text-lg font-semibold mb-8 text-gray-700"></div>
+            
+            <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow transition">
+                Coba Lagi
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "Manakah kalimat dengan rincian yang benar?",
+                options: [
+                    "Ibu membeli ikan, sayur dan buah.",
+                    "Ibu membeli ikan, sayur, dan buah.",
+                    "Ibu membeli ikan sayur dan buah.",
+                    "Ibu membeli ikan, sayur dan, buah."
+                ],
+                correct: 1,
+                hint: "Tanda koma digunakan sebelum 'dan' pada rincian lebih dari dua unsur."
+            },
+            {
+                q: "Penulisan kata hubung 'sedangkan' yang tepat adalah...",
+                options: [
+                    "Adik tidur sedangkan Kakak belajar.",
+                    "Adik tidur, sedangkan Kakak belajar.",
+                    "Adik tidur sedangkan, Kakak belajar.",
+                    "Adik, tidur sedangkan Kakak belajar."
+                ],
+                correct: 1,
+                hint: "Tanda koma digunakan SEBELUM kata hubung 'sedangkan'."
+            },
+            {
+                q: "Pilihlah kalimat yang menggunakan tanda koma secara tepat!",
+                options: [
+                    "Buku itu bagus tetapi, harganya mahal.",
+                    "Buku itu bagus tetapi harganya mahal.",
+                    "Buku itu bagus, tetapi harganya mahal.",
+                    "Buku itu, bagus tetapi harganya mahal."
+                ],
+                correct: 2,
+                hint: "Tanda koma digunakan SEBELUM kata hubung 'tetapi'."
+            },
+            {
+                q: "Ali ingin membeli pulpen, pensil, ... penghapus. Tanda baca apa yang hilang?",
+                options: [
+                    ", dan",
+                    "dan",
+                    ", atau",
+                    "dan,"
+                ],
+                correct: 0,
+                hint: "Untuk rincian tiga barang atau lebih, gunakan koma sebelum kata hubung."
+            },
+            {
+                q: "Lani pandai matematika, ... ia kurang suka olahraga.",
+                options: [
+                    "sedangkan",
+                    "tetapi",
+                    ", tetapi",
+                    "sedangkan,"
+                ],
+                correct: 2,
+                hint: "Gunakan tanda koma sebelum 'tetapi' untuk menunjukkan pertentangan."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('lesson-screen').classList.remove('hidden');
+        }
+
+        function showQuestion() {
+            document.getElementById('lesson-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            const q = questions[currentQuestion];
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('progress-text').innerText = `Soal ${currentQuestion + 1} dari ${questions.length}`;
+            document.getElementById('progress-fill').style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option w-full p-4 text-left rounded-xl font-medium';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            answered = false;
+        }
+
+        function checkAnswer(index, btn) {
+            if (answered) return;
+            answered = true;
+
+            const q = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            const btns = document.querySelectorAll('.btn-option');
+
+            if (index === q.correct) {
+                btn.classList.add('correct');
+                score += (100 / questions.length);
+                feedback.innerText = "Benar! Hebat sekali! 🌟";
+                feedback.className = "mt-6 text-center font-bold p-3 rounded-lg bg-green-100 text-green-700";
+            } else {
+                btn.classList.add('wrong');
+                btns[q.correct].classList.add('correct');
+                feedback.innerText = "Kurang tepat. Ingat: " + q.hint;
+                feedback.className = "mt-6 text-center font-bold p-3 rounded-lg bg-red-100 text-red-700";
+            }
+
+            document.getElementById('score-text').innerText = `Skor: ${Math.round(score)}`;
+            feedback.classList.remove('hidden');
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            const finalScore = Math.round(score);
+            document.getElementById('final-score').innerText = finalScore;
+            
+            let msg = "";
+            if (finalScore === 100) msg = "Luar biasa! Kamu sudah mahir menggunakan tanda koma! 🏆";
+            else if (finalScore >= 70) msg = "Bagus! Pemahamanmu sudah cukup baik. 👍";
+            else msg = "Jangan menyerah! Ayo baca lagi materinya dan coba lagi. 💪";
+            
+            document.getElementById('result-msg').innerText = msg;
+        }
+    </script>
+</body>
+</html>
