@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis 15 Soal: Kata Benda & Sifat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600;700&display=swap');
+        
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --dark: #2F2E41;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #f8f7ff;
+        }
+
+        h1, .font-title {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .option-card:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--secondary);
+            background-color: #f0fdfa;
+        }
+
+        .correct {
+            background-color: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46 !important;
+        }
+
+        .wrong {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b !important;
+        }
+
+        .progress-container {
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), #45b7af);
+            transition: width 0.4s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-custom {
+            animation: bounce 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="game-app" class="max-w-2xl w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-8 border-white">
+        
+        <!-- Header Section -->
+        <div class="bg-indigo-600 p-6 text-white relative">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="bg-yellow-400 p-2 rounded-lg text-indigo-900 font-bold">Q</span>
+                    <span id="question-index-text" class="font-bold tracking-wide text-sm uppercase">Soal 1/15</span>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs opacity-80 uppercase font-bold tracking-tighter">Skor Kamu</p>
+                    <p id="current-score" class="text-xl font-title text-yellow-300">0</p>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div id="main-content" class="p-8 md:p-12">
+            
+            <!-- Start Screen -->
+            <div id="start-screen" class="text-center py-10">
+                <div class="mb-6 animate-bounce-custom inline-block">
+                    <span class="text-8xl">💡</span>
+                </div>
+                <h1 class="text-4xl text-indigo-900 mb-4">Master Tata Bahasa</h1>
+                <p class="text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">Uji pengetahuanmu tentang Kata Benda dan Kata Sifat melalui 15 tantangan menarik.</p>
+                <button onclick="startQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-12 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 text-lg">
+                    Mulai Bermain!
+                </button>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div id="quiz-screen" class="hidden">
+                <div class="mb-8">
+                    <p id="sentence-box" class="text-center italic text-gray-400 mb-4 text-lg border-b pb-4"></p>
+                    <h2 id="question-text" class="text-2xl font-bold text-gray-800 text-center leading-tight"></h2>
+                </div>
+
+                <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Options buttons will be injected here -->
+                </div>
+                
+                <div id="feedback-msg" class="mt-8 text-center hidden p-4 rounded-2xl font-bold text-lg"></div>
+            </div>
+
+            <!-- Result Screen -->
+            <div id="result-screen" class="hidden text-center py-6">
+                <div id="result-visual" class="text-8xl mb-6"></div>
+                <h2 id="result-title" class="text-3xl font-title text-indigo-900 mb-2"></h2>
+                <div class="flex justify-center space-x-8 my-8">
+                    <div class="text-center">
+                        <p class="text-gray-400 text-xs uppercase font-bold">Total Skor</p>
+                        <p id="final-score" class="text-5xl font-title text-indigo-600">0</p>
+                    </div>
+                    <div class="text-center border-l pl-8">
+                        <p class="text-gray-400 text-xs uppercase font-bold">Benar</p>
+                        <p id="final-correct" class="text-5xl font-title text-green-500">0</p>
+                    </div>
+                </div>
+                <p id="result-desc" class="text-gray-500 mb-10 px-4"></p>
+                <button onclick="location.reload()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-12 rounded-2xl shadow-lg transition-all">
+                    Main Lagi
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { s: "Budi sedang duduk di atas **kursi** kayu.", q: "Kata 'kursi' merupakan contoh...", o: ["Kata Sifat", "Kata Benda", "Kata Kerja", "Kata Ganti"], a: 1 },
+            { s: "Gajah itu memiliki telinga yang sangat **lebar**.", q: "Manakah kategori untuk kata 'lebar'?", o: ["Kata Benda", "Kata Bilangan", "Kata Sifat", "Kata Keterangan"], a: 2 },
+            { s: "Adik merasa **sedih** karena mainannya rusak.", q: "Kata 'sedih' menunjukkan...", o: ["Benda", "Keadaan (Sifat)", "Aksi", "Waktu"], a: 1 },
+            { s: "Ibu membeli **sayur** segar di pasar tradisional.", q: "Manakah yang merupakan kata benda?", o: ["Membeli", "Segar", "Sayur", "Di"], a: 2 },
+            { s: "Sepatu baru milik Ani berwarna **merah**.", q: "Kata 'merah' adalah...", o: ["Kata Benda", "Kata Sifat", "Kata Depan", "Kata Sambung"], a: 1 },
+            { s: "Ayah memotong rumput menggunakan **sabit**.", q: "Jenis kata 'sabit' adalah...", o: ["Kata Sifat", "Kata Benda", "Kata Perintah", "Kata Tanya"], a: 1 },
+            { s: "Kopi ini terasa sangat **pahit** tanpa gula.", q: "Kata 'pahit' termasuk...", o: ["Kata Benda", "Kata Kerja", "Kata Sifat", "Kata Bilangan"], a: 2 },
+            { s: "Langit malam ini dipenuhi banyak **bintang**.", q: "Kata 'bintang' adalah kata...", o: ["Sifat", "Ganti", "Benda", "Keterangan"], a: 2 },
+            { s: "Ruang kelas itu terlihat sangat **bersih**.", q: "Ciri sifat dalam kalimat tersebut adalah...", o: ["Ruang", "Kelas", "Terlihat", "Bersih"], a: 3 },
+            { s: "Pak Tani sedang mencangkul di **sawah**.", q: "Kata benda tempat dalam kalimat ini adalah...", o: ["Mencangkul", "Sawah", "Sedang", "Tani"], a: 1 },
+            { s: "Pisau itu sangat **tajam** hingga harus hati-hati.", q: "Kata 'tajam' merupakan...", o: ["Kata Benda", "Kata Sifat", "Kata Seru", "Kata Hubung"], a: 1 },
+            { s: "Ani menyimpan **pensil** di dalam kotak.", q: "Objek benda dalam kalimat tersebut adalah...", o: ["Menyimpan", "Pensil", "Di dalam", "Kotak"], a: 1 },
+            { s: "Lari atlet itu sangat **cepat**.", q: "Kata 'cepat' menjelaskan tentang...", o: ["Nama Benda", "Sifat Gerakan", "Waktu Kejadian", "Alat"], a: 1 },
+            { s: "Kita harus minum **air** putih yang cukup.", q: "Mana yang merupakan kata benda?", o: ["Harus", "Minum", "Air", "Cukup"], a: 2 },
+            { s: "Tas punggung ini terasa sangat **berat**.", q: "Kata 'berat' termasuk jenis kata...", o: ["Benda", "Kerja", "Tanya", "Sifat"], a: 3 }
+        ];
+
+        let currentQ = 0;
+        let score = 0;
+        let correctCount = 0;
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const data = questions[currentQ];
+            document.getElementById('question-index-text').innerText = `Soal ${currentQ + 1}/${questions.length}`;
+            document.getElementById('progress-bar').style.width = ((currentQ / questions.length) * 100) + '%';
+            document.getElementById('sentence-box').innerHTML = data.s;
+            document.getElementById('question-text').innerText = data.q;
+            document.getElementById('feedback-msg').classList.add('hidden');
+
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            
+            data.o.forEach((option, i) => {
+                const div = document.createElement('div');
+                div.className = "option-card border-2 border-gray-100 p-5 rounded-2xl font-semibold text-gray-700 flex items-center";
+                div.innerHTML = `<span class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mr-4 text-sm">${String.fromCharCode(65 + i)}</span> ${option}`;
+                div.onclick = () => checkAnswer(i, div);
+                grid.appendChild(div);
+            });
+        }
+
+        function checkAnswer(idx, element) {
+            const data = questions[currentQ];
+            const allOptions = document.querySelectorAll('.option-card');
+            
+            // Disable further clicks
+            allOptions.forEach(opt => opt.classList.add('disabled', 'pointer-events-none'));
+
+            const feedback = document.getElementById('feedback-msg');
+            feedback.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+
+            if (idx === data.a) {
+                element.classList.add('correct');
+                score += 10;
+                correctCount++;
+                feedback.innerText = "🎉 Jawabanmu Tepat!";
+                feedback.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                element.classList.add('wrong');
+                allOptions[data.a].classList.add('correct');
+                feedback.innerText = "💡 Belajar Lagi Yuk!";
+                feedback.classList.add('bg-red-100', 'text-red-700');
+            }
+
+            document.getElementById('current-score').innerText = score;
+
+            setTimeout(() => {
+                currentQ++;
+                if (currentQ < questions.length) {
+                    renderQuestion();
+                } else {
+                    showFinalResult();
+                }
+            }, 1500);
+        }
+
+        function showFinalResult() {
+            document.getElementById('progress-bar').style.width = '100%';
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const visual = document.getElementById('result-visual');
+            const title = document.getElementById('result-title');
+            const desc = document.getElementById('result-desc');
+            const finalScore = document.getElementById('final-score');
+            const finalCorrect = document.getElementById('final-correct');
+
+            finalScore.innerText = score;
+            finalCorrect.innerText = correctCount;
+
+            if (score >= 130) {
+                visual.innerText = "👑";
+                title.innerText = "Luar Biasa!";
+                desc.innerText = "Kamu benar-benar ahli dalam membedakan Kata Benda dan Kata Sifat. Pertahankan prestasimu!";
+            } else if (score >= 80) {
+                visual.innerText = "🌟";
+                title.innerText = "Bagus Sekali!";
+                desc.innerText = "Kamu memiliki pemahaman yang baik, namun masih ada beberapa yang perlu diperbaiki.";
+            } else {
+                visual.innerText = "📚";
+                title.innerText = "Ayo Semangat!";
+                desc.innerText = "Jangan berkecil hati. Coba baca kembali materinya dan tantang dirimu lagi!";
+            }
+        }
+    </script>
+</body>
+</html>
