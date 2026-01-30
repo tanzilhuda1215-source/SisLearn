@@ -523,28 +523,51 @@
             clearInterval(spyInterval);
         }
 
+        // --- FUNGSI MATA-MATA (VERSI ANTI-PENSIUN) ---
         function startSpying() {
-            clearInterval(spyInterval);
-            let scoreCaptured = false;
+            // Hapus interval lama jika ada biar tidak dobel
+            if (spyInterval) clearInterval(spyInterval);
+            
+            let scoreCaptured = false; // Status: Apakah skor ronde ini sudah dicatat?
+
             spyInterval = setInterval(() => {
-                if(scoreCaptured) return;
                 const iframe = document.getElementById('game-frame');
                 try {
+                    // Cek apakah isi iframe sudah siap
                     const doc = iframe.contentDocument || iframe.contentWindow.document;
                     if (doc) {
                         const resultScreen = doc.getElementById('result-screen');
-                        if (resultScreen && !resultScreen.classList.contains('hidden')) {
+                        
+                        // KONDISI 1: Game Selesai & Skor Belum Dicatat
+                        // (Layar hasil muncul)
+                        if (resultScreen && !resultScreen.classList.contains('hidden') && !scoreCaptured) {
+                            
                             const scoreEl = doc.getElementById('final-score');
                             if (scoreEl) {
+                                // 1. Simpan ke Firebase
                                 saveToFirebase(currentGameTitle, scoreEl.innerText);
-                                scoreCaptured = true;
-                                clearInterval(spyInterval);
-                                Swal.fire("Misi Selesai!", `Skor ${scoreEl.innerText} tersimpan ke cloud! ☁️`, "success");
+                                
+                                // 2. Tandai sudah dicatat biar tidak simpan berulang-ulang
+                                scoreCaptured = true; 
+                                
+                                // 3. Beri Notifikasi Kecil (Toast) agar tidak mengganggu tombol 'Main Lagi'
+                                const Toast = Swal.mixin({ toast: true, position: 'top', showConfirmButton: false, timer: 3000 });
+                                Toast.fire({ icon: 'success', title: `Skor ${scoreEl.innerText} tersimpan!` });
                             }
                         }
+
+                        // KONDISI 2: Game Diulang / Restart
+                        // (Layar hasil sudah hilang/hidden kembali karena user klik main lagi)
+                        if (resultScreen && resultScreen.classList.contains('hidden') && scoreCaptured) {
+                            // Reset status agar siap mencatat skor ronde berikutnya!
+                            scoreCaptured = false;
+                            console.log("Game di-restart, mata-mata bersiap lagi...");
+                        }
                     }
-                } catch (e) {}
-            }, 1000);
+                } catch (e) {
+                    // Error wajar saat iframe sedang reloading, abaikan saja
+                }
+            }, 1000); // Cek setiap 1 detik
         }
 
         loadContent();
