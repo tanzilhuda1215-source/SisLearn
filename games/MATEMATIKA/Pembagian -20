@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Matematika - Pembagian Dasar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .option-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Container Utama -->
+    <div class="max-w-md w-full">
+        
+        <!-- Layar Mulai -->
+        <div id="start-screen" class="glass-card rounded-3xl p-8 shadow-xl text-center border border-gray-100">
+            <div class="mb-6 inline-flex items-center justify-center w-20 h-20 bg-indigo-100 text-indigo-600 rounded-2xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 8c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zM4 12h16" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-extrabold text-gray-800 mb-2">Kuis Pembagian</h1>
+            <p class="text-gray-500 mb-8 text-sm leading-relaxed">Selesaikan 15 soal pembagian dasar dengan hasil bilangan bulat secepat mungkin!</p>
+            <button onclick="startQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all active:scale-95 shadow-lg shadow-indigo-200">
+                Mulai Kuis
+            </button>
+        </div>
+
+        <!-- Layar Kuis -->
+        <div id="quiz-screen" class="hidden glass-card rounded-3xl p-6 shadow-xl border border-gray-100">
+            <!-- Header Kuis -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-full">Matematika Dasar</span>
+                </div>
+                <div class="text-sm font-bold text-gray-400">
+                    <span id="current-question-num" class="text-gray-800">1</span> / 15
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-100 h-2 rounded-full mb-10 overflow-hidden">
+                <div id="progress-bar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 6.66%"></div>
+            </div>
+
+            <!-- Pertanyaan -->
+            <div class="text-center mb-10">
+                <p class="text-sm text-gray-400 mb-2 font-medium">Berapakah hasil dari:</p>
+                <div id="question-text" class="text-5xl font-extrabold text-gray-800 tracking-tight">
+                    12 ÷ 3
+                </div>
+            </div>
+
+            <!-- Pilihan Jawaban -->
+            <div id="options-container" class="grid grid-cols-1 gap-3">
+                <!-- Tombol pilihan akan muncul di sini via JS -->
+            </div>
+        </div>
+
+        <!-- Layar Hasil (ID Wajib: result-screen) -->
+        <div id="result-screen" class="hidden glass-card rounded-3xl p-8 shadow-2xl text-center border border-gray-100">
+            <div id="feedback-icon" class="mb-6 inline-flex items-center justify-center w-24 h-24 rounded-full">
+                <!-- Icon via JS -->
+            </div>
+            <h2 class="text-2xl font-extrabold text-gray-800 mb-1">Kuis Selesai!</h2>
+            <p id="result-message" class="text-gray-500 mb-8 text-sm italic font-medium"></p>
+            
+            <div class="bg-gray-50 rounded-3xl p-6 mb-8 border border-gray-100">
+                <p class="text-xs uppercase tracking-widest text-gray-400 font-bold mb-2">Nilai Akhir Anda</p>
+                <div class="text-6xl font-black text-indigo-600">
+                    <!-- ID Wajib: final-score -->
+                    <span id="final-score">0</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="resetQuiz()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-4 px-6 rounded-2xl transition-all active:scale-95 shadow-lg">
+                    Coba Lagi
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Konfigurasi Kuis
+        const TOTAL_QUESTIONS = 15;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizData = [];
+
+        // Inisialisasi Kuis
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            quizData = generateQuestions(TOTAL_QUESTIONS);
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            showQuestion();
+        }
+
+        // Generate Soal Acak (Pembagian sesuai batasan)
+        function generateQuestions(count) {
+            const questions = [];
+            for (let i = 0; i < count; i++) {
+                // Syarat: Pembagi (divisor) maksimal 4
+                const divisor = Math.floor(Math.random() * 4) + 1; // 1 s/d 4
+                
+                // Syarat: Angka yang dibagi (dividend) di bawah 20
+                // Dan hasil harus bulat, jadi kita tentukan hasil (answer) dulu
+                const maxResult = Math.floor(19 / divisor);
+                const answer = Math.floor(Math.random() * maxResult) + 1;
+                
+                const dividend = divisor * answer;
+                
+                // Buat Pilihan Jawaban
+                let options = [answer];
+                while (options.length < 4) {
+                    const offset = [1, 2, 3, -1, -2, -3][Math.floor(Math.random() * 6)];
+                    const distractor = answer + offset;
+                    
+                    if (!options.includes(distractor) && distractor >= 0) {
+                        options.push(distractor);
+                    }
+                }
+                
+                // Acak Pilihan
+                options.sort(() => Math.random() - 0.5);
+                
+                questions.push({
+                    q: `${dividend} ÷ ${divisor}`,
+                    a: answer,
+                    options: options
+                });
+            }
+            return questions;
+        }
+
+        // Menampilkan Pertanyaan
+        function showQuestion() {
+            const data = quizData[currentQuestionIndex];
+            document.getElementById('question-text').innerText = data.q;
+            document.getElementById('current-question-num').innerText = currentQuestionIndex + 1;
+            
+            const progress = ((currentQuestionIndex + 1) / TOTAL_QUESTIONS) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            data.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-indigo-500 hover:bg-indigo-50 font-bold text-gray-700 transition-all active:scale-95';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt);
+                container.appendChild(btn);
+            });
+        }
+
+        // Cek Jawaban
+        function checkAnswer(selected) {
+            const correct = quizData[currentQuestionIndex].a;
+            if (selected === correct) {
+                score++;
+            }
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < TOTAL_QUESTIONS) {
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        // Selesai Kuis
+        function finishQuiz() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            
+            const finalScoreValue = Math.round((score / TOTAL_QUESTIONS) * 100);
+            document.getElementById('final-score').innerText = finalScoreValue;
+            
+            const iconContainer = document.getElementById('feedback-icon');
+            const messageEl = document.getElementById('result-message');
+            
+            if (finalScoreValue >= 80) {
+                iconContainer.innerHTML = `<svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                iconContainer.className = "mb-6 inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-2xl";
+                messageEl.innerText = "Luar biasa! Kemampuan pembagianmu mantap.";
+            } else if (finalScoreValue >= 60) {
+                iconContainer.innerHTML = `<svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                iconContainer.className = "mb-6 inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-2xl";
+                messageEl.innerText = "Kerja bagus! Sedikit lagi kamu akan sempurna.";
+            } else {
+                iconContainer.innerHTML = `<svg class="w-12 h-12 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                iconContainer.className = "mb-6 inline-flex items-center justify-center w-20 h-20 bg-orange-100 rounded-2xl";
+                messageEl.innerText = "Jangan patah semangat! Latihan terus ya.";
+            }
+
+            // MUNCULKAN LAYAR HASIL
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+
+        // Reset
+        function resetQuiz() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
