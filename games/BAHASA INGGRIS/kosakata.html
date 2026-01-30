@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis English: Family & Vocabulary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+        
+        body {
+            background-color: #f0fdf4;
+            font-family: 'Quicksand', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+        .option-card.selected {
+            background-color: #10b981;
+            border-color: #059669;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+<div class="glass-card w-full max-w-xl rounded-3xl shadow-2xl p-8">
+    <!-- Header -->
+    <div id="quiz-header" class="mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-emerald-600">English Quiz</h1>
+            <span id="q-counter" class="bg-emerald-100 text-emerald-600 px-4 py-1 rounded-full text-sm font-bold">1 / 20</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-2">Topic: Family & Vocabulary</p>
+        <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+            <div id="progress-bar" class="bg-emerald-500 h-full transition-all duration-500 ease-out" style="width: 5%"></div>
+        </div>
+    </div>
+
+    <!-- Quiz Content -->
+    <div id="quiz-body">
+        <div id="question-container" class="mb-8">
+            <h2 id="question-text" class="text-xl font-bold text-gray-800 leading-relaxed">
+                Loading question...
+            </h2>
+        </div>
+
+        <div id="options-grid" class="grid grid-cols-1 gap-3">
+            <!-- Options will be here -->
+        </div>
+
+        <button id="next-btn" class="mt-10 w-full bg-emerald-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-600 disabled:opacity-30 disabled:shadow-none transition-all" disabled>
+            Pertanyaan Berikutnya
+        </button>
+    </div>
+
+    <!-- Result Page -->
+    <div id="result-page" class="hidden text-center py-10">
+        <div class="inline-block p-6 rounded-full bg-emerald-100 text-emerald-600 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <h2 class="text-3xl font-black text-gray-800 mb-2">Luar Biasa!</h2>
+        <p class="text-gray-500 mb-8">Hasil nilai akhir Anda adalah:</p>
+        <div id="final-score" class="text-9xl font-black text-emerald-500 mb-10 tracking-tighter">0</div>
+        <button onclick="location.reload()" class="bg-gray-800 text-white px-12 py-4 rounded-2xl font-bold hover:bg-black transition-all">
+            Coba Lagi
+        </button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "Apa arti dari kata \"Grandfather\"?", o: ["Nenek", "Ayah", "Kakek", "Paman"], a: 2 },
+        { q: "Apa arti dari kata \"Aunt\"?", o: ["Bibi", "Kakak", "Ibu", "Guru"], a: 0 },
+        { q: "Apa arti dari kata \"Cousin\"?", o: ["Saudara kandung", "Saudara sepupu", "Keponakan", "Teman"], a: 1 },
+        { q: "Apa arti dari kata \"Dancer\"?", o: ["Penyanyi", "Pelukis", "Penari", "Guru"], a: 2 },
+        { q: "Apa arti dari kata \"Teacher\"?", o: ["Murid", "Guru", "Kepala Sekolah", "Penjaga"], a: 1 },
+        { q: "Apa arti dari kata \"Sister\"?", o: ["Kakak/adik laki-laki", "Ayah", "Kakak/adik perempuan", "Kakek"], a: 2 },
+        { q: "Apa arti dari kata \"Uncle\"?", o: ["Paman", "Bibi", "Kakek", "Ayah"], a: 0 },
+        { q: "Apa arti dari kata \"Beautiful\"?", o: ["Jelek", "Besar", "Indah / Cantik", "Pintar"], a: 2 },
+        { q: "Apa arti dari kata \"Name\"?", o: ["Alamat", "Nama", "Usia", "Hobi"], a: 1 },
+        { q: "Apa arti dari kata \"Big\"?", o: ["Kecil", "Sedikit", "Besar", "Banyak"], a: 2 },
+        { q: "Bahasa Inggris dari \"Usia\" adalah...", o: ["Name", "Who", "Age", "Big"], a: 2 },
+        { q: "Bahasa Inggris dari \"Siapa\" adalah...", o: ["Where", "Who", "What", "How"], a: 1 },
+        { q: "Bahasa Inggris dari \"Paman\" adalah...", o: ["Aunt", "Brother", "Uncle", "Father"], a: 2 },
+        { q: "Bahasa Inggris dari \"Bibi\" adalah...", o: ["Mother", "Sister", "Aunt", "Cousin"], a: 2 },
+        { q: "Bahasa Inggris dari \"Guru\" adalah...", o: ["Doctor", "Teacher", "Dancer", "Driver"], a: 1 },
+        { q: "Bahasa Inggris dari \"Kakek\" adalah...", o: ["Grandmother", "Grandfather", "Father", "Brother"], a: 1 },
+        { q: "Bahasa Inggris dari \"Saudara Sepupu\" adalah...", o: ["Sister", "Brother", "Cousin", "Aunt"], a: 2 },
+        { q: "Bahasa Inggris dari \"Penari\" adalah...", o: ["Singer", "Teacher", "Dancer", "Student"], a: 2 },
+        { q: "Bahasa Inggris dari \"Besar\" adalah...", o: ["Small", "Big", "Tall", "Long"], a: 1 },
+        { q: "Bahasa Inggris dari \"Indah\" adalah...", o: ["Ugly", "Nice", "Beautiful", "Bad"], a: 2 }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let selectedAns = null;
+
+    const qText = document.getElementById('question-text');
+    const optionsGrid = document.getElementById('options-grid');
+    const nextBtn = document.getElementById('next-btn');
+    const counter = document.getElementById('q-counter');
+    const progressBar = document.getElementById('progress-bar');
+    const resultPage = document.getElementById('result-page');
+    const quizBody = document.getElementById('quiz-body');
+    const finalScore = document.getElementById('final-score');
+
+    function loadQuestion() {
+        const item = questions[currentIdx];
+        selectedAns = null;
+        nextBtn.disabled = true;
+
+        // Update Header
+        counter.innerText = `${currentIdx + 1} / ${questions.length}`;
+        progressBar.style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
+
+        // Update Question
+        qText.innerText = item.q;
+        optionsGrid.innerHTML = '';
+
+        const labels = ['A', 'B', 'C', 'D'];
+        item.o.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-card border-2 border-gray-100 p-4 rounded-2xl flex items-center text-left font-semibold text-gray-700';
+            btn.innerHTML = `<span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mr-4 text-sm font-bold">${labels[i]}</span> ${opt}`;
+            
+            btn.onclick = () => {
+                selectedAns = i;
+                document.querySelectorAll('.option-card').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                nextBtn.disabled = false;
+            };
+            optionsGrid.appendChild(btn);
+        });
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (selectedAns === questions[currentIdx].a) {
+            score++;
+        }
+
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    });
+
+    function showResults() {
+        quizBody.classList.add('hidden');
+        document.getElementById('quiz-header').classList.add('hidden');
+        resultPage.classList.remove('hidden');
+
+        const resultValue = Math.round((score / questions.length) * 100);
+        
+        // Animasi angka skor
+        let startValue = 0;
+        const duration = 1500;
+        const stepTime = resultValue === 0 ? 0 : Math.abs(Math.floor(duration / resultValue));
+        
+        if (resultValue === 0) {
+            finalScore.innerText = "0";
+            return;
+        }
+
+        const timer = setInterval(() => {
+            startValue += 1;
+            finalScore.innerText = startValue;
+            if (startValue === resultValue) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
