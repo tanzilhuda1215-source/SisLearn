@@ -3,326 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Game Edukasi</title>
+    <title>There is/are & Prepositions</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
-        body { font-family: 'Outfit', sans-serif; }
-        .loading { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+        body { font-family: 'Fredoka', sans-serif; background-color: #ecfccb; }
+        .card-hover:hover { transform: scale(1.02); }
+        .hidden { display: none; }
     </style>
 </head>
-<body class="bg-[#0f172a] text-white min-h-screen flex flex-col p-4 md:p-8">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border-4 border-lime-500">
         
-        <div class="lg:col-span-3">
-            <header class="mb-10 border-b border-slate-700 pb-6">
-                <h1 class="text-4xl md:text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
-                    Zona Belajar Interaktif
-                </h1>
-                <p class="text-slate-400 text-lg">Materi terbaru selalu muncul di urutan pertama.</p>
-            </header>
-
-            <div id="main-container" class="space-y-12">
-                <div class="text-slate-500 loading pt-10 text-center text-xl">
-                    📡 Memindai data terbaru...
-                </div>
+        <div class="bg-lime-500 p-6 flex justify-between items-center text-white">
+            <h1 class="text-2xl font-bold">Grammar Quiz</h1>
+            <div class="bg-white/20 px-4 py-1 rounded-full font-mono">
+                <span id="q-idx">1</span> / <span id="q-total">15</span>
             </div>
         </div>
 
-        <div class="lg:col-span-1">
-            <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 sticky top-8 h-[85vh] flex flex-col shadow-xl">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-bold text-yellow-400 flex items-center gap-2">
-                        🏆 Riwayat Skor
-                    </h2>
-                    <button onclick="clearHistory()" class="text-xs text-slate-500 hover:text-red-400 transition-colors">
-                        Reset
-                    </button>
-                </div>
-                <div class="overflow-y-auto flex-grow pr-2 space-y-3" id="history-container">
-                    <p class="text-slate-500 text-sm text-center mt-10 italic">Belum ada misi selesai.</p>
-                </div>
+        <div id="quiz-area" class="p-8">
+            <div class="mb-8 text-center">
+                <div id="visual-clue" class="text-6xl mb-4">🐱📦</div>
+                <h2 id="question-text" class="text-2xl font-bold text-slate-700">Loading...</h2>
             </div>
-        </div>
-    </div>
 
-    <div id="game-modal" class="fixed inset-0 z-50 bg-black/95 hidden flex items-center justify-center p-2 md:p-4 backdrop-blur-md">
-        <div class="bg-slate-900 w-full max-w-5xl h-[95vh] rounded-2xl border border-slate-600 flex flex-col relative shadow-2xl overflow-hidden">
-            <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🎮</span>
-                    <h3 id="modal-title" class="font-bold text-lg md:text-xl text-white">Memuat...</h3>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 </div>
-                <button onclick="closeGame()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-bold transition-colors shadow-lg">
-                    KELUAR ❌
-                </button>
-            </div>
-            <iframe id="game-frame" src="" class="w-full flex-grow bg-[#0f172a]" frameborder="0"></iframe>
         </div>
+
+        <div id="result-screen" class="hidden p-10 text-center bg-lime-50 h-full flex flex-col items-center justify-center">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold text-lime-700 mb-2">Quiz Completed!</h2>
+            <p class="text-gray-500 mb-6">Skor akhir kamu:</p>
+            
+            <div id="final-score" class="text-8xl font-black text-lime-600 mb-8">0</div>
+            
+            <button onclick="location.reload()" class="bg-lime-600 hover:bg-lime-700 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-transform hover:-translate-y-1">
+                Main Lagi
+            </button>
+        </div>
+
     </div>
 
     <script>
-        // ==========================================
-        // ✅ KONFIGURASI PENGGUNA
-        // ==========================================
-        const GITHUB_USERNAME = 'tanzilhuda1215-source'; 
-        const REPO_NAME = 'SisLearn';                    
-        const FOLDER_NAME = 'games';                     
+        const questions = [
+            { q: "___ a book on the table.", a: 0, o: ["There is", "There are"], v: "📖" },
+            { q: "___ two cats under the chair.", a: 1, o: ["There is", "There are"], v: "🐱🐱" },
+            { q: "___ some milk in the fridge.", a: 0, o: ["There is", "There are"], v: "🥛" },
+            { q: "___ many stars in the sky.", a: 1, o: ["There is", "There are"], v: "✨✨" },
+            { q: "___ an apple in the basket.", a: 0, o: ["There is", "There are"], v: "🍎" },
+            { q: "The cat is ___ the box. (Di dalam)", a: 0, o: ["in", "on", "under"], v: "📦🐱" },
+            { q: "The ball is ___ the table. (Di bawah)", a: 2, o: ["on", "beside", "under"], v: "🪑⚽" },
+            { q: "The lamp is ___ the desk. (Di atas)", a: 0, o: ["on", "in", "between"], v: "🛋️💡" },
+            { q: "The bank is ___ the school and the post office.", a: 1, o: ["behind", "between", "in front of"], v: "🏫🏦🏣" },
+            { q: "The teacher stands ___ the class. (Di depan)", a: 2, o: ["under", "behind", "in front of"], v: "👩‍🏫" },
+            { q: "___ five birds on the tree.", a: 1, o: ["There is", "There are"], v: "🌳🐦" },
+            { q: "___ a lot of sugar in the jar.", a: 0, o: ["There is", "There are"], v: "🧂" },
+            { q: "The car is ___ the garage. (Di belakang)", a: 1, o: ["in front of", "behind", "on"], v: "🏠🚗" },
+            { q: "Put the shoes ___ the shelf. (Di atas)", a: 0, o: ["on", "in", "under"], v: "👟" },
+            { q: "My house is ___ the park. (Di samping)", a: 2, o: ["between", "in", "beside"], v: "🏡🌳" }
+        ];
 
-        const CUSTOM_ICONS = {
-            "space.html": "🚀",
-            "glass.html": "💎",
-            "Pronouncation-Games.html": "🗣️"
-        };
-        // ==========================================
+        let current = 0;
+        let score = 0;
 
-        let spyInterval = null;
-        let currentGameTitle = "";
+        const qText = document.getElementById('question-text');
+        const qVisual = document.getElementById('visual-clue');
+        const optsContainer = document.getElementById('options-container');
+        const qIdx = document.getElementById('q-idx');
+        const qTotal = document.getElementById('q-total');
+        
+        // Element Result
+        const quizArea = document.getElementById('quiz-area');
+        const resultScreen = document.getElementById('result-screen');
+        const finalScore = document.getElementById('final-score');
 
-        // --- FUNGSI 0: PARSING TANGGAL DARI NAMA FILE ---
-        function parseFileInfo(filename) {
-            // Regex untuk mendeteksi format: YYYY-MM-DD-Judul.html
-            const dateRegex = /^(\d{4})-(\d{2})-(\d{2})-(.*)\.html$/;
-            const match = filename.match(dateRegex);
+        qTotal.innerText = questions.length;
 
-            if (match) {
-                const year = match[1];
-                const month = match[2];
-                const day = match[3];
-                const rawTitle = match[4];
+        function loadQ() {
+            const item = questions[current];
+            qIdx.innerText = current + 1;
+            qText.innerText = item.q;
+            qVisual.innerText = item.v;
+            optsContainer.innerHTML = '';
 
-                const dateObj = new Date(year, month - 1, day);
-                // Format tanggal cantik: 28 Feb 2024
-                const formattedDate = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            item.o.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-lime-100 border-2 border-lime-300 p-4 rounded-xl font-semibold text-lime-800 hover:bg-lime-200 card-hover transition-all text-left";
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(idx);
+                optsContainer.appendChild(btn);
+            });
+        }
 
-                return {
-                    dateObj: dateObj,         // Untuk sorting (Komputer)
-                    dateDisplay: formattedDate, // Untuk tampilan (Manusia)
-                    cleanName: rawTitle.replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase()
-                };
+        function checkAnswer(idx) {
+            if(idx === questions[current].a) {
+                score++;
+            }
+            
+            current++;
+            if(current < questions.length) {
+                loadQ();
             } else {
-                // Jika file TIDAK pakai tanggal (format lama)
-                return {
-                    dateObj: new Date(0), // Dianggap tanggal jaman purba (agar di bawah)
-                    dateDisplay: "",      // Tidak menampilkan tanggal
-                    cleanName: filename.replace('.html', '').replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase()
-                };
+                finishGame();
             }
         }
 
-        // --- FUNGSI 1: AMBIL DATA ---
-        async function loadContent() {
-            const mainContainer = document.getElementById('main-container');
-            const rootApiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_NAME}`;
-
-            try {
-                const response = await fetch(rootApiUrl);
-                if (!response.ok) throw new Error("Gagal koneksi ke GitHub.");
-                const items = await response.json();
-
-                mainContainer.innerHTML = ''; 
-
-                // Pisahkan File & Folder
-                const files = items.filter(item => item.type === 'file' && item.name.endsWith('.html'));
-                const folders = items.filter(item => item.type === 'dir');
-
-                // Render Game Umum (Tanpa Kategori)
-                if (files.length > 0) {
-                    renderCategorySection("Game Umum / Lainnya", files);
-                }
-
-                // Render Kategori (Folder)
-                await Promise.all(folders.map(async (folder) => {
-                    const folderUrl = folder.url; 
-                    const folderName = folder.name.replace(/-/g, ' ').toUpperCase(); 
-                    
-                    try {
-                        const resp = await fetch(folderUrl);
-                        const folderItems = await resp.json();
-                        const gameInFolder = folderItems.filter(item => item.type === 'file' && item.name.endsWith('.html'));
-                        
-                        if (gameInFolder.length > 0) {
-                            renderCategorySection(folderName, gameInFolder);
-                        }
-                    } catch (err) {
-                        console.error(`Skip kategori ${folderName}`, err);
-                    }
-                }));
-
-                if (mainContainer.innerHTML === '') {
-                    mainContainer.innerHTML = '<div class="text-center text-red-400 mt-10">Folder kosong.</div>';
-                }
-
-            } catch (error) {
-                console.error(error);
-                mainContainer.innerHTML = `<div class="text-red-500 p-4">Error: ${error.message}</div>`;
-            }
-        }
-
-        // --- FUNGSI 2: RENDER KARTU DENGAN TANGGAL ---
-        function renderCategorySection(categoryTitle, fileList) {
-            const mainContainer = document.getElementById('main-container');
+        function finishGame() {
+            quizArea.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
             
-            // 1. PROSES & SORTING DATA
-            // Kita ubah dulu file mentah menjadi data yang ada tanggalnya
-            const processedFiles = fileList.map(file => {
-                const info = parseFileInfo(file.name);
-                return { ...file, ...info };
-            });
-
-            // Urutkan: Tanggal Terbaru (Z-A) di atas
-            processedFiles.sort((a, b) => b.dateObj - a.dateObj);
-
-            // 2. BUAT TAMPILAN
-            const section = document.createElement('div');
-            section.className = "animate-fade-in order-last";
-            
-            let gridHTML = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">`;
-            
-            processedFiles.forEach(file => {
-                let icon = CUSTOM_ICONS[file.name] || "🎮";
-                // Auto Icon sederhana
-                if(file.cleanName.includes("MATH")) icon = "🧮";
-                if(file.cleanName.includes("KATA")) icon = "abc";
-
-                // Badge Tanggal (Hanya muncul jika ada tanggal)
-                const dateBadge = file.dateDisplay 
-                    ? `<span class="text-[10px] font-mono text-teal-300 bg-slate-900 px-2 py-1 rounded border border-teal-900/50 flex items-center gap-1">📅 ${file.dateDisplay}</span>`
-                    : `<span class="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded">GAME</span>`;
-
-                gridHTML += `
-                    <div class="group relative bg-slate-800 rounded-2xl p-5 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-teal-500/10 flex flex-col h-full">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="text-4xl bg-slate-900/50 w-14 h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                ${icon}
-                            </div>
-                            ${dateBadge}
-                        </div>
-                        
-                        <h3 class="text-lg font-bold text-white mb-2 leading-tight group-hover:text-teal-300">
-                            ${file.cleanName}
-                        </h3>
-                        
-                        <div class="mt-auto pt-4">
-                            <button onclick="openGame('${file.path}', '${file.cleanName}')" 
-                               class="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-500 hover:to-teal-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-                                <span>Mainkan</span> 🚀
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            gridHTML += `</div>`;
-
-            section.innerHTML = `
-                <div class="flex items-center gap-4 mb-6 mt-8">
-                    <div class="h-8 w-1 bg-teal-500 rounded-full"></div>
-                    <h2 class="text-2xl font-bold text-white tracking-wide">${categoryTitle}</h2>
-                    <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${fileList.length} Game</span>
-                </div>
-                ${gridHTML}
-            `;
-            
-            mainContainer.appendChild(section);
+            // Hitung skor 0-100
+            const totalScore = Math.round((score / questions.length) * 100);
+            finalScore.innerText = totalScore;
         }
 
-        // --- FUNGSI 3, 4, 5 (GAME & RIWAYAT - TETAP SAMA) ---
-        function openGame(path, title) {
-            const modal = document.getElementById('game-modal');
-            const iframe = document.getElementById('game-frame');
-            document.getElementById('modal-title').innerText = title;
-            currentGameTitle = title;
-            iframe.src = path; 
-            modal.classList.remove('hidden');
-            startSpying();
-        }
-
-        function closeGame() {
-            const modal = document.getElementById('game-modal');
-            const iframe = document.getElementById('game-frame');
-            modal.classList.add('hidden');
-            iframe.src = "";
-            clearInterval(spyInterval);
-            loadHistory();
-        }
-
-        function startSpying() {
-            clearInterval(spyInterval);
-            let scoreCaptured = false;
-            spyInterval = setInterval(() => {
-                if(scoreCaptured) return;
-                const iframe = document.getElementById('game-frame');
-                try {
-                    const gameDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    if (gameDoc) {
-                        const resultScreen = gameDoc.getElementById('result-screen');
-                        if (resultScreen && !resultScreen.classList.contains('hidden') && resultScreen.style.display !== 'none') {
-                            const scoreEl = gameDoc.getElementById('final-score') || gameDoc.getElementById('score');
-                            if (scoreEl) {
-                                const finalScore = scoreEl.innerText;
-                                saveToHistory(currentGameTitle, finalScore);
-                                scoreCaptured = true;
-                                clearInterval(spyInterval);
-                                alert(`🎉 Skor ${finalScore} tersimpan!`);
-                            }
-                        }
-                    }
-                } catch (e) { }
-            }, 1000);
-        }
-
-        function saveToHistory(game, score) {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            const newEntry = { game, score, date: dateStr, time: timeStr };
-            let history = JSON.parse(localStorage.getItem('gameHistory') || '[]');
-            history.unshift(newEntry);
-            localStorage.setItem('gameHistory', JSON.stringify(history));
-            loadHistory();
-        }
-
-        function loadHistory() {
-            const container = document.getElementById('history-container');
-            const history = JSON.parse(localStorage.getItem('gameHistory') || '[]');
-            if (history.length === 0) {
-                container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10 italic">Belum ada misi.</p>';
-                return;
-            }
-            container.innerHTML = '';
-            history.forEach(item => {
-                const itemHTML = `
-                    <div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600/50 hover:bg-slate-700 transition-colors flex justify-between items-center group">
-                        <div>
-                            <h4 class="font-bold text-sm text-teal-300 group-hover:text-teal-200 line-clamp-1 w-32">${item.game}</h4>
-                            <p class="text-[10px] text-slate-400">${item.date} • ${item.time}</p>
-                        </div>
-                        <div class="text-right bg-slate-800 px-2 py-1 rounded-lg">
-                            <span class="block text-lg font-bold text-yellow-400 leading-none">${item.score}</span>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += itemHTML;
-            });
-        }
-
-        function clearHistory() {
-            if(confirm("Hapus semua riwayat?")) {
-                localStorage.removeItem('gameHistory');
-                loadHistory();
-            }
-        }
-
-        loadContent();
-        loadHistory();
+        loadQ();
     </script>
 </body>
 </html>
