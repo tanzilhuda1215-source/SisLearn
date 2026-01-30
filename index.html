@@ -18,7 +18,6 @@
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
-        /* Animasi Checklist Admin */
         .check-anim { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .check-anim:hover { transform: scale(1.1); }
     </style>
@@ -103,29 +102,35 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
         // ==========================================
         // 1. KONFIGURASI FIREBASE & GITHUB
         // ==========================================
         
-        // 🔥 PASTE KONFIGURASI FIREBASE ANDA DI SINI 🔥
-       const firebaseConfig = {
-          apiKey: "AIzaSyApJpiuRb_lfF8tWFEnzZnykKkKvcMB9-s",
-          authDomain: "zona-belajar-f4b36.firebaseapp.com",
-          projectId: "zona-belajar-f4b36",
-          storageBucket: "zona-belajar-f4b36.firebasestorage.app",
-          messagingSenderId: "921644645673",
-          appId: "1:921644645673:web:b01e1909a1138a1b6a8b38"
+       // 👇👇👇 KODE YANG SUDAH DIPERBAIKI (LENGKAP) 👇👇👇
+        const firebaseConfig = {
+            apiKey: "AIzaSyApJpiuRb_lfF8tWFEnzZnykKkKvcMB9-s",
+            authDomain: "zona-belajar-f4b36.firebaseapp.com",
+            
+            // 🔥 INI BAGIAN PENTING YANG TADI HILANG 🔥
+            // (Biasanya formatnya seperti ini, sesuaikan jika Anda memilih server selain US)
+            databaseURL: "https://zona-belajar-f4b36-default-rtdb.firebaseio.com/",
+            
+            projectId: "zona-belajar-f4b36",
+            storageBucket: "zona-belajar-f4b36.firebasestorage.app",
+            messagingSenderId: "921644645673",
+            appId: "1:921644645673:web:b01e1909a1138a1b6a8b38"
         };
+        // 👆👆👆 PASTIKAN URL DATABASE ADA DI SANA 👆👆👆
 
         // Inisialisasi Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const auth = firebase.auth();
-        const db = firebase.firestore();
+        const db = firebase.database(); // Pakai Realtime Database
 
         // Konfigurasi GitHub
         const GITHUB_USERNAME = 'tanzilhuda1215-source'; 
@@ -140,7 +145,7 @@
 
         let currentUser = null;
         let isAdmin = false;
-        let selectedItems = new Set(); // Untuk menyimpan ID item yang mau dihapus
+        let selectedItems = new Set(); 
 
         // --- AUTHENTICATION SYSTEM ---
         auth.onAuthStateChanged(user => {
@@ -150,7 +155,7 @@
                 document.getElementById('user-info').classList.remove('hidden');
                 document.getElementById('user-name').innerText = user.displayName;
                 document.getElementById('user-photo').src = user.photoURL;
-                loadHistoryRealtime(); // Load riwayat dari Firebase
+                loadHistoryRealtime(); 
             } else {
                 currentUser = null;
                 document.getElementById('btn-login').classList.remove('hidden');
@@ -172,11 +177,10 @@
             exitAdmin();
         }
 
-        // --- SISTEM GAME & FOLDER (Tetap Sama) ---
+        // --- SISTEM GAME & FOLDER ---
         let spyInterval = null;
         let currentGameTitle = "";
 
-        // Fungsi Parse Tanggal (Sama seperti sebelumnya)
         function parseFileInfo(filename) {
             const dateRegex = /^(\d{4})-(\d{2})-(\d{2})-(.*)\.html$/;
             const match = filename.match(dateRegex);
@@ -188,8 +192,6 @@
         }
 
         async function loadContent() {
-            // (Logika Load Game GitHub Sama seperti kode Anda sebelumnya)
-            // ... Saya persingkat di sini agar muat, gunakan logika loadContent dari kode sebelumnya ...
             const mainContainer = document.getElementById('main-container');
             const rootApiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_NAME}`;
             try {
@@ -212,9 +214,7 @@
         function renderCategorySection(title, files) {
             const container = document.getElementById('main-container');
             const processed = files.map(f => ({ ...f, ...parseFileInfo(f.name) })).sort((a, b) => b.dateObj - a.dateObj);
-            
             let html = `<div class="animate-fade-in order-last"><div class="flex items-center gap-4 mb-6 mt-8"><div class="h-8 w-1 bg-teal-500 rounded-full"></div><h2 class="text-2xl font-bold">${title}</h2></div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">`;
-            
             processed.forEach(f => {
                 let icon = CUSTOM_ICONS[f.name] || (f.cleanName.includes("MATH") ? "🧮" : "🎮");
                 html += `<div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1 flex flex-col h-full">
@@ -263,15 +263,16 @@
             }, 1000);
         }
 
-        // --- 2. LOGIKA FIREBASE DATABASE ---
+        // --- 2. LOGIKA REALTIME DATABASE (PENGGANTI FIRESTORE) ---
         function saveToFirebase(game, score) {
-            if (!currentUser) return; // Tidak simpan jika belum login
+            if (!currentUser) return;
             
-            db.collection('history').add({
-                userId: currentUser.uid,
+            // Simpan data di path: history/USER_ID/
+            const newHistoryRef = db.ref('history/' + currentUser.uid).push();
+            newHistoryRef.set({
                 game: game,
                 score: parseInt(score),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
                 dateStr: new Date().toLocaleDateString('id-ID')
             });
         }
@@ -279,34 +280,33 @@
         function loadHistoryRealtime() {
             if (!currentUser) return;
 
-            // Subscribe real-time: Tiap ada perubahan data, tabel otomatis update
-            db.collection('history')
-              .where('userId', '==', currentUser.uid)
-              .orderBy('createdAt', 'desc')
-              .onSnapshot((snapshot) => {
-                  const container = document.getElementById('history-container');
-                  
-                  if (snapshot.empty) {
-                      container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Belum ada data.</p>';
-                      return;
-                  }
+            // Baca data di path: history/USER_ID/
+            const historyRef = db.ref('history/' + currentUser.uid);
+            
+            historyRef.on('value', (snapshot) => {
+                const container = document.getElementById('history-container');
+                const dataRaw = snapshot.val();
 
-                  container.innerHTML = '';
-                  snapshot.forEach(doc => {
-                      const data = doc.data();
-                      const id = doc.id;
-                      
-                      // Tampilan Normal vs Tampilan Admin (Checkbox)
-                      // Kita buat elemen list
-                      const itemDiv = document.createElement('div');
-                      itemDiv.className = "bg-slate-700/40 p-3 rounded-xl border border-slate-600/50 flex items-center gap-3 group transition-all";
-                      itemDiv.setAttribute('data-id', id);
+                if (!dataRaw) {
+                    container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Belum ada data.</p>';
+                    return;
+                }
 
-                      // Checkbox (Hanya muncul jika isAdmin = true)
-                      const checkbox = `<input type="checkbox" class="admin-check w-5 h-5 accent-red-500 ${isAdmin ? 'block' : 'hidden'}" onchange="toggleSelect('${id}')">`;
-                      
-                      // Konten
-                      const content = `
+                // Ubah object ke array lalu sort berdasarkan waktu (terbaru di atas)
+                const dataArray = Object.keys(dataRaw).map(key => ({
+                    id: key,
+                    ...dataRaw[key]
+                })).sort((a, b) => b.createdAt - a.createdAt);
+
+                container.innerHTML = '';
+                
+                dataArray.forEach(data => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "bg-slate-700/40 p-3 rounded-xl border border-slate-600/50 flex items-center gap-3 group transition-all";
+                    
+                    const checkbox = `<input type="checkbox" class="admin-check w-5 h-5 accent-red-500 ${isAdmin ? 'block' : 'hidden'}" onchange="toggleSelect('${data.id}')">`;
+                    
+                    const content = `
                         <div class="flex-grow">
                             <h4 class="font-bold text-sm text-teal-300 line-clamp-1">${data.game}</h4>
                             <p class="text-[10px] text-slate-400">${data.dateStr}</p>
@@ -314,22 +314,19 @@
                         <div class="text-right bg-slate-800 px-2 py-1 rounded-lg">
                             <span class="block text-lg font-bold text-yellow-400 leading-none">${data.score}</span>
                         </div>
-                      `;
+                    `;
 
-                      itemDiv.innerHTML = checkbox + content;
-                      container.appendChild(itemDiv);
-                  });
-              });
+                    itemDiv.innerHTML = checkbox + content;
+                    container.appendChild(itemDiv);
+                });
+            });
         }
 
-        // --- 3. MODE ADMINISTRATOR & HAPUS ---
+        // --- 3. MODE ADMINISTRATOR (REALTIME DB VERSION) ---
         async function adminMode() {
             if (!currentUser) return Swal.fire("Akses Ditolak", "Login dulu bos!", "warning");
-
-            // Jika sudah mode admin, matikan
             if (isAdmin) { exitAdmin(); return; }
 
-            // Minta Password
             const { value: password } = await Swal.fire({
                 title: 'Masukkan Password Admin',
                 input: 'password',
@@ -340,14 +337,10 @@
             if (password === "admin") {
                 isAdmin = true;
                 selectedItems.clear();
-                
-                // Tampilkan Panel Admin & Checkbox
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('btn-admin').classList.add('bg-red-600', 'text-white');
                 document.getElementById('btn-admin').innerText = "Tutup Admin";
-                
                 document.querySelectorAll('.admin-check').forEach(el => el.classList.remove('hidden'));
-                
                 Swal.fire("Mode Administrator Aktif", "Silakan pilih data yang ingin dihapus.", "success");
             } else if (password) {
                 Swal.fire("Salah Password!", "Anda bukan admin.", "error");
@@ -360,20 +353,17 @@
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('btn-admin').classList.remove('bg-red-600', 'text-white');
             document.getElementById('btn-admin').innerText = "⚙️ Kelola";
-            
             document.querySelectorAll('.admin-check').forEach(el => {
                 el.classList.add('hidden');
                 el.checked = false;
             });
         }
 
-        // Centang Pilihan
         window.toggleSelect = function(id) {
             if (selectedItems.has(id)) selectedItems.delete(id);
             else selectedItems.add(id);
         }
 
-        // Hapus Pilihan Tertentu
         async function deleteSelected() {
             if (selectedItems.size === 0) return Swal.fire("Pilih dulu", "Centang data yang mau dihapus.", "info");
 
@@ -387,18 +377,17 @@
             });
 
             if (result.isConfirmed) {
-                const batch = db.batch();
+                const updates = {};
                 selectedItems.forEach(id => {
-                    const ref = db.collection('history').doc(id);
-                    batch.delete(ref);
+                    updates[`history/${currentUser.uid}/${id}`] = null;
                 });
-                await batch.commit();
+                
+                await db.ref().update(updates);
                 Swal.fire("Terhapus!", "Data terpilih sudah hilang.", "success");
                 selectedItems.clear();
             }
         }
 
-        // Hapus SEMUA
         async function deleteAll() {
             const result = await Swal.fire({
                 title: 'HAPUS SEMUA RIWAYAT?',
@@ -410,17 +399,11 @@
             });
 
             if (result.isConfirmed) {
-                const snapshot = await db.collection('history').where('userId', '==', currentUser.uid).get();
-                const batch = db.batch();
-                snapshot.docs.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-                await batch.commit();
+                await db.ref(`history/${currentUser.uid}`).remove();
                 Swal.fire("Bersih!", "Semua riwayat telah dihapus.", "success");
             }
         }
 
-        // Jalankan
         loadContent();
     </script>
 </body>
