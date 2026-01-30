@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluasi 5 - Bahasa Inggris Dasar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .hidden { display: none; }
+        .visual-aid {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 3rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+<div class="w-full max-w-xl bg-white rounded-3xl shadow-xl overflow-hidden">
+    <!-- Progress Bar -->
+    <div class="h-2 bg-gray-100">
+        <div id="progress" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+    </div>
+
+    <div class="p-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider">Evaluation 5</span>
+            <span id="q-counter" class="text-gray-400 text-sm font-medium">Pertanyaan 1/10</span>
+        </div>
+
+        <!-- Question View -->
+        <div id="quiz-view">
+            <div id="visual-context" class="visual-aid">
+                <!-- Emoji visual will go here -->
+            </div>
+            
+            <h2 id="question-text" class="text-xl font-bold text-gray-800 mb-6 leading-tight"></h2>
+            
+            <div id="options" class="space-y-3">
+                <!-- Options buttons injected here -->
+            </div>
+
+            <button id="next-btn" class="mt-8 w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none transition-all" disabled>
+                Lanjut
+            </button>
+        </div>
+
+        <!-- Result View -->
+        <div id="result-view" class="hidden text-center py-10">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-600 rounded-full mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Kuis Selesai!</h3>
+            <p class="text-gray-500 mb-8">Nilai akhir Anda adalah:</p>
+            <div id="score-display" class="text-9xl font-black text-blue-600 mb-10 tracking-tighter">0</div>
+            <button onclick="location.reload()" class="w-full border-2 border-gray-200 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
+                Ulangi Kuis
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { 
+            q: "The book is ... the table", 
+            v: "📘<br>[ Meja ]", 
+            o: ["on", "under", "beside"], 
+            a: 1,
+            ctx: "Buku ada di bawah meja"
+        },
+        { 
+            q: "The bag is ... the book", 
+            v: "🎒 📘", 
+            o: ["in", "on", "beside"], 
+            a: 2,
+            ctx: "Tas ada di samping buku"
+        },
+        { 
+            q: "The bag is ... the chair", 
+            v: "🪑<br>🎒", 
+            o: ["in", "on", "under"], 
+            a: 2,
+            ctx: "Tas ada di bawah kursi"
+        },
+        { 
+            q: "The pencil case is ... the table", 
+            v: "👝<br>————", 
+            o: ["on", "in", "under"], 
+            a: 0,
+            ctx: "Kotak pensil ada di atas meja"
+        },
+        { 
+            q: "Is the pencil on the book?", 
+            v: "✏️<br>📘", 
+            o: ["Yes, I am.", "Yes, I do.", "Yes, it is."], 
+            a: 2,
+            ctx: "Pensil berada tepat di atas buku"
+        },
+        { 
+            q: "Is the pencil beside the pencil case?", 
+            v: "✏️ 👝", 
+            o: ["Yes, it is.", "No, it is not.", "No, it is."], 
+            a: 0,
+            ctx: "Pensil berada di samping kotak pensil"
+        },
+        { 
+            q: "Where is the book?", 
+            v: "📦(📘)", 
+            o: ["The book is on the box.", "The book is in the box.", "The book is under the box."], 
+            a: 1,
+            ctx: "Buku berada di dalam kotak"
+        },
+        { 
+            q: "Where is the pen?", 
+            v: "🖋️<br>📘", 
+            o: ["The pen is under the book.", "The pen is in the book.", "The pen is on the book."], 
+            a: 2,
+            ctx: "Pulpen berada di atas buku"
+        },
+        { 
+            q: "Where is the book?", 
+            v: "🎒(📘)", 
+            o: ["The book is under the bag.", "The book is on the bag.", "The book is in the bag."], 
+            a: 2,
+            ctx: "Buku berada di dalam tas"
+        },
+        { 
+            q: "beside – sharpener – the – a – is – notebook", 
+            v: "📝 ⚙️", 
+            o: [
+                "A sharpener is beside the notebook.", 
+                "A sharpener beside is the notebook.", 
+                "A sharpener is the notebook beside."
+            ], 
+            a: 0,
+            ctx: "Susunlah kata-kata tersebut"
+        }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let selected = null;
+
+    const quizView = document.getElementById('quiz-view');
+    const resultView = document.getElementById('result-view');
+    const questionText = document.getElementById('question-text');
+    const visualContext = document.getElementById('visual-context');
+    const optionsDiv = document.getElementById('options');
+    const nextBtn = document.getElementById('next-btn');
+    const counter = document.getElementById('q-counter');
+    const progress = document.getElementById('progress');
+    const scoreDisplay = document.getElementById('score-display');
+
+    function loadQuestion() {
+        const item = questions[currentIdx];
+        selected = null;
+        nextBtn.disabled = true;
+        
+        counter.innerText = `Pertanyaan ${currentIdx + 1}/${questions.length}`;
+        progress.style.width = `${(currentIdx / questions.length) * 100}%`;
+        
+        visualContext.innerHTML = `<div class="text-sm text-gray-400 mb-2 uppercase font-bold tracking-widest">Visual Aid</div>${item.v}<div class="text-xs text-gray-400 mt-2 font-normal italic">(${item.ctx})</div>`;
+        questionText.innerText = item.q;
+        
+        optionsDiv.innerHTML = '';
+        item.o.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = "option-card w-full p-4 border-2 border-gray-100 rounded-xl text-left font-medium text-gray-700 flex items-center gap-4 hover:border-blue-200 hover:bg-blue-50";
+            btn.innerHTML = `
+                <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">${String.fromCharCode(65 + i)}</span>
+                <span>${opt}</span>
+            `;
+            btn.onclick = () => {
+                selected = i;
+                document.querySelectorAll('.option-card').forEach(b => {
+                    b.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-100');
+                    b.classList.add('border-gray-100');
+                });
+                btn.classList.remove('border-gray-100');
+                btn.classList.add('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-100');
+                nextBtn.disabled = false;
+            };
+            optionsDiv.appendChild(btn);
+        });
+    }
+
+    nextBtn.onclick = () => {
+        if (selected === questions[currentIdx].a) score++;
+        
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    };
+
+    function showResult() {
+        quizView.classList.add('hidden');
+        resultView.classList.remove('hidden');
+        progress.style.width = '100%';
+        progress.classList.replace('bg-blue-500', 'bg-green-500');
+        
+        const finalPercentage = Math.round((score / questions.length) * 100);
+        scoreDisplay.innerText = finalPercentage;
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
