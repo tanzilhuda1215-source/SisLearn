@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Matematika - Pertambahan 2 Digit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .option-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Container Utama -->
+    <div class="max-w-md w-full">
+        
+        <!-- Layar Mulai -->
+        <div id="start-screen" class="glass-card rounded-3xl p-8 shadow-xl text-center border border-gray-100">
+            <div class="mb-6 inline-flex items-center justify-center w-20 h-20 bg-blue-100 text-blue-600 rounded-2xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-extrabold text-gray-800 mb-2">Kuis Matematika</h1>
+            <p class="text-gray-500 mb-8 text-sm leading-relaxed">Selesaikan 15 soal pertambahan 2 digit secepat mungkin untuk mendapatkan nilai sempurna!</p>
+            <button onclick="startQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-200">
+                Mulai Kuis
+            </button>
+        </div>
+
+        <!-- Layar Kuis -->
+        <div id="quiz-screen" class="hidden glass-card rounded-3xl p-6 shadow-xl border border-gray-100">
+            <!-- Header Kuis -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-3 py-1 rounded-full">Matematika Dasar</span>
+                </div>
+                <div class="text-sm font-bold text-gray-400">
+                    <span id="current-question-num" class="text-gray-800">1</span> / 15
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-100 h-2 rounded-full mb-10 overflow-hidden">
+                <div id="progress-bar" class="bg-blue-600 h-full transition-all duration-300" style="width: 6.66%"></div>
+            </div>
+
+            <!-- Pertanyaan -->
+            <div class="text-center mb-10">
+                <p class="text-sm text-gray-400 mb-2 font-medium">Berapakah hasil dari:</p>
+                <div id="question-text" class="text-5xl font-extrabold text-gray-800 tracking-tight">
+                    15 + 35
+                </div>
+            </div>
+
+            <!-- Pilihan Jawaban -->
+            <div id="options-container" class="grid grid-cols-1 gap-3">
+                <!-- Tombol pilihan akan muncul di sini via JS -->
+            </div>
+        </div>
+
+        <!-- Layar Hasil (ID Wajib: result-screen) -->
+        <div id="result-screen" class="hidden glass-card rounded-3xl p-8 shadow-2xl text-center border border-gray-100">
+            <div id="feedback-icon" class="mb-6 inline-flex items-center justify-center w-24 h-24 rounded-full">
+                <!-- Icon via JS -->
+            </div>
+            <h2 class="text-2xl font-extrabold text-gray-800 mb-1">Kuis Selesai!</h2>
+            <p id="result-message" class="text-gray-500 mb-8 text-sm italic font-medium"></p>
+            
+            <div class="bg-gray-50 rounded-3xl p-6 mb-8 border border-gray-100">
+                <p class="text-xs uppercase tracking-widest text-gray-400 font-bold mb-2">Nilai Akhir Anda</p>
+                <div class="text-6xl font-black text-blue-600">
+                    <!-- ID Wajib: final-score -->
+                    <span id="final-score">0</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="resetQuiz()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-4 px-6 rounded-2xl transition-all active:scale-95 shadow-lg">
+                    Coba Lagi
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Konfigurasi Kuis
+        const TOTAL_QUESTIONS = 15;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizData = [];
+
+        // Inisialisasi Kuis
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            quizData = generateQuestions(TOTAL_QUESTIONS);
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            showQuestion();
+        }
+
+        // Generate Soal Acak
+        function generateQuestions(count) {
+            const questions = [];
+            for (let i = 0; i < count; i++) {
+                const num1 = Math.floor(Math.random() * 90) + 10; // 10-99
+                const num2 = Math.floor(Math.random() * 90) + 10; // 10-99
+                const answer = num1 + num2;
+                
+                // Buat Pilihan Jawaban
+                let options = [answer];
+                while (options.length < 4) {
+                    const offset = Math.floor(Math.random() * 20) - 10; // -10 sampai 10
+                    const distractor = answer + offset + (offset === 0 ? 5 : 0); // Pastikan tidak sama dengan jawaban
+                    if (!options.includes(distractor) && distractor > 0) {
+                        options.push(distractor);
+                    }
+                }
+                
+                // Acak Pilihan
+                options.sort(() => Math.random() - 0.5);
+                
+                questions.push({
+                    q: `${num1} + ${num2}`,
+                    a: answer,
+                    options: options
+                });
+            }
+            return questions;
+        }
+
+        // Menampilkan Pertanyaan
+        function showQuestion() {
+            const data = quizData[currentQuestionIndex];
+            document.getElementById('question-text').innerText = data.q;
+            document.getElementById('current-question-num').innerText = currentQuestionIndex + 1;
+            
+            const progress = ((currentQuestionIndex + 1) / TOTAL_QUESTIONS) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            data.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left py-4 px-6 rounded-2xl border-2 border-gray-100 hover:border-blue-500 hover:bg-blue-50 font-bold text-gray-700 transition-all active:scale-95';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt);
+                container.appendChild(btn);
+            });
+        }
+
+        // Cek Jawaban
+        function checkAnswer(selected) {
+            const correct = quizData[currentQuestionIndex].a;
+            if (selected === correct) {
+                score++;
+            }
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < TOTAL_QUESTIONS) {
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        // Selesai Kuis
+        function finishQuiz() {
+            // Sembunyikan Kuis
+            document.getElementById('quiz-screen').classList.add('hidden');
+            
+            // Hitung nilai akhir (Correct / Total * 100)
+            const finalScoreValue = Math.round((score / TOTAL_QUESTIONS) * 100);
+            
+            // Set nilai ke elemen wajib
+            document.getElementById('final-score').innerText = finalScoreValue;
+            
+            // Logic Feedback Visual
+            const iconContainer = document.getElementById('feedback-icon');
+            const messageEl = document.getElementById('result-message');
+            
+            if (finalScoreValue >= 80) {
+                iconContainer.innerHTML = `<svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+                iconContainer.className = "mb-6 inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-2xl";
+                messageEl.innerText = "Luar biasa! Kamu ahli matematika.";
+            } else if (finalScoreValue >= 60) {
+                iconContainer.innerHTML = `<svg class="w-12 h-12 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`;
+                iconContainer.className = "mb-6 inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-2xl";
+                messageEl.innerText = "Bagus! Teruslah berlatih.";
+            } else {
+                iconContainer.innerHTML = `<svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+                iconContainer.className = "mb-6 inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-2xl";
+                messageEl.innerText = "Jangan menyerah, coba lagi yuk!";
+            }
+
+            // MUNCULKAN LAYAR HASIL (Wajib sesuai instruksi)
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+
+        // Reset
+        function resetQuiz() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
