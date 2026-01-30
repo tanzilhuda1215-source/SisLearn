@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis English: Possessive Adjectives</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+        
+        body {
+            background-color: #fdf2f8;
+            font-family: 'Quicksand', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            border-color: #ec4899;
+            background-color: #fdf2f8;
+        }
+        .option-card.selected {
+            background-color: #ec4899;
+            border-color: #db2777;
+            color: white;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+<div class="glass-card w-full max-w-xl rounded-3xl shadow-2xl p-8">
+    <!-- Header -->
+    <div id="quiz-header" class="mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-pink-600">English Quiz</h1>
+            <span id="q-counter" class="bg-pink-100 text-pink-600 px-4 py-1 rounded-full text-sm font-bold">1 / 15</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-2">Topic: Possessive Adjectives</p>
+        <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+            <div id="progress-bar" class="bg-pink-500 h-full transition-all duration-500 ease-out" style="width: 6.66%"></div>
+        </div>
+    </div>
+
+    <!-- Quiz Content -->
+    <div id="quiz-body">
+        <div id="question-container" class="mb-8">
+            <h2 id="question-text" class="text-xl font-bold text-gray-800 leading-relaxed">
+                Loading question...
+            </h2>
+        </div>
+
+        <div id="options-grid" class="grid grid-cols-1 gap-3">
+            <!-- Options will be here -->
+        </div>
+
+        <button id="next-btn" class="mt-10 w-full bg-pink-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-pink-200 hover:bg-pink-600 disabled:opacity-30 disabled:shadow-none transition-all" disabled>
+            Pertanyaan Berikutnya
+        </button>
+    </div>
+
+    <!-- Result Page -->
+    <div id="result-page" class="hidden text-center py-10">
+        <div class="inline-block p-6 rounded-full bg-green-100 text-green-600 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <h2 class="text-3xl font-black text-gray-800 mb-2">Selamat!</h2>
+        <p class="text-gray-500 mb-8">Hasil nilai akhir Anda adalah:</p>
+        <div id="final-score" class="text-9xl font-black text-pink-500 mb-10 tracking-tighter">0</div>
+        <button onclick="location.reload()" class="bg-gray-800 text-white px-12 py-4 rounded-2xl font-bold hover:bg-black transition-all">
+            Main Lagi
+        </button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "Hello! ___ name is Rudi. I am eight years old.", o: ["Your", "My", "His", "Her"], a: 1 },
+        { q: "My uncle and aunt have four kids. ___ kids are very nice.", o: ["Their", "Our", "His", "Her"], a: 0 },
+        { q: "Cindy is my cousin. ___ hobby is swimming.", o: ["His", "Its", "Her", "My"], a: 2 },
+        { q: "My grandfather is kind and lovely. ___ name is Mr. Herman.", o: ["Her", "My", "Your", "His"], a: 3 },
+        { q: "Yuka and Dahlia are my sisters. ___ ages are nine and three years old.", o: ["Her", "Their", "Our", "Your"], a: 1 },
+        { q: "My aunt is a teacher. ___ students love her.", o: ["His", "My", "Her", "Their"], a: 2 },
+        { q: "Father has a car. ___ color is blue.", o: ["Its", "His", "Her", "Your"], a: 0 },
+        { q: "Tommy is my uncle. ___ wife is beautiful and kind.", o: ["Her", "My", "Their", "His"], a: 3 },
+        { q: "We have a cat. It is a cute cat. ___ name is Si Belang.", o: ["Your", "Its", "His", "Her"], a: 1 },
+        { q: "I have one brother. ___ name is Roni.", o: ["Her", "My", "His", "Your"], a: 2 },
+        { q: "You are a dancer. ___ costume is very beautiful.", o: ["Your", "My", "Their", "Our"], a: 0 },
+        { q: "We have a big family. ___ family is always happy.", o: ["Their", "Our", "Your", "Its"], a: 1 },
+        { q: "My brother and I have a new ball. ___ ball is orange.", o: ["Their", "My", "Our", "His"], a: 2 },
+        { q: "The students are in the library. ___ books are on the table.", o: ["Their", "Her", "His", "Your"], a: 0 },
+        { q: "You and your friend are tall. ___ parents are also tall.", o: ["My", "Your", "Our", "Their"], a: 1 }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let selectedAns = null;
+
+    const qText = document.getElementById('question-text');
+    const optionsGrid = document.getElementById('options-grid');
+    const nextBtn = document.getElementById('next-btn');
+    const counter = document.getElementById('q-counter');
+    const progressBar = document.getElementById('progress-bar');
+    const resultPage = document.getElementById('result-page');
+    const quizBody = document.getElementById('quiz-body');
+    const finalScore = document.getElementById('final-score');
+
+    function loadQuestion() {
+        const item = questions[currentIdx];
+        selectedAns = null;
+        nextBtn.disabled = true;
+
+        // Update Header
+        counter.innerText = `${currentIdx + 1} / ${questions.length}`;
+        progressBar.style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
+
+        // Update Question
+        qText.innerText = item.q;
+        optionsGrid.innerHTML = '';
+
+        const labels = ['A', 'B', 'C', 'D'];
+        item.o.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-card border-2 border-gray-100 p-4 rounded-2xl flex items-center text-left font-semibold text-gray-700';
+            btn.innerHTML = `<span class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center mr-4 text-sm font-bold">${labels[i]}</span> ${opt}`;
+            
+            btn.onclick = () => {
+                selectedAns = i;
+                document.querySelectorAll('.option-card').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                nextBtn.disabled = false;
+            };
+            optionsGrid.appendChild(btn);
+        });
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (selectedAns === questions[currentIdx].a) {
+            score++;
+        }
+
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    });
+
+    function showResults() {
+        quizBody.classList.add('hidden');
+        document.getElementById('quiz-header').classList.add('hidden');
+        resultPage.classList.remove('hidden');
+
+        // Kalkulasi persentase tanpa simbol %
+        const resultValue = Math.round((score / questions.length) * 100);
+        
+        // Animasi angka skor
+        let startValue = 0;
+        const duration = 1500;
+        const stepTime = Math.abs(Math.floor(duration / resultValue));
+        
+        const timer = setInterval(() => {
+            if (resultValue === 0) {
+                finalScore.innerText = "0";
+                clearInterval(timer);
+                return;
+            }
+            startValue += 1;
+            finalScore.innerText = startValue;
+            if (startValue === resultValue) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
