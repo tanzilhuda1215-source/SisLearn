@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Bahasa Inggris - Bagian 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+        .quiz-card {
+            max-width: 650px;
+            margin: 3rem auto;
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .btn-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .btn-option:hover {
+            border-color: #6366f1;
+            background-color: #f5f3ff;
+        }
+        .btn-option.selected {
+            border-color: #6366f1;
+            background-color: #6366f1;
+            color: white;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-card">
+    <!-- Header -->
+    <div id="quiz-header" class="text-center mb-8">
+        <h1 class="text-3xl font-extrabold text-indigo-700">English Quiz II</h1>
+        <p class="text-gray-500 font-medium">Latihan Keberadaan Benda & Posisi</p>
+        <div class="mt-4 flex items-center gap-4">
+            <span id="q-counter" class="text-sm font-bold text-indigo-600 min-w-[50px]">1 / 15</span>
+            <div class="flex-grow bg-gray-200 h-3 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-indigo-600 h-full transition-all duration-300" style="width: 6.66%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Container -->
+    <div id="quiz-body">
+        <div id="question-text" class="text-xl font-semibold text-gray-800 mb-6 min-h-[60px]">
+            Memuat pertanyaan...
+        </div>
+        <div id="options-list" class="space-y-3">
+            <!-- Pilihan akan muncul di sini -->
+        </div>
+        <button id="next-btn" class="mt-8 w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-30 disabled:shadow-none transition-all" disabled>
+            Selanjutnya
+        </button>
+    </div>
+
+    <!-- Result Container -->
+    <div id="result-page" class="hidden text-center">
+        <div class="mb-4 text-indigo-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Kuis Selesai!</h2>
+        <p class="text-gray-500 mb-8">Nilai presentase Anda adalah:</p>
+        <div id="score-number" class="text-9xl font-black text-indigo-600 tracking-tighter mb-10">0</div>
+        <button onclick="location.reload()" class="bg-gray-800 text-white px-10 py-4 rounded-xl font-bold hover:bg-black transition-colors">
+            Ulangi Kuis
+        </button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { q: "There ____ a calendar on the wall.", o: ["is", "are"], a: 0 },
+        { q: "There ____ two apples in the bowl.", o: ["is", "are"], a: 1 },
+        { q: "There ____ a cat under the table.", o: ["is", "are"], a: 0 },
+        { q: "There ____ three pencils beside the book.", o: ["is", "are"], a: 1 },
+        { q: "There ____ a lamp on the desk.", o: ["is", "are"], a: 0 },
+        { q: "The key is ____ the pocket. (di dalam)", o: ["in", "on", "under"], a: 0 },
+        { q: "The pillow is ____ the bed. (di atas)", o: ["beside", "on", "under"], a: 1 },
+        { q: "The shoes are ____ the door. (di samping)", o: ["beside", "in", "on"], a: 0 },
+        { q: "The ball is ____ the car. (di bawah)", o: ["on", "beside", "under"], a: 2 },
+        { q: "The water is ____ the glass. (di dalam)", o: ["under", "in", "beside"], a: 1 },
+        { q: "\"There are\" digunakan untuk objek yang lebih dari satu.", o: ["Benar (True)", "Salah (False)"], a: 0 },
+        { q: "\"Beside\" memiliki arti yang sama dengan \"In\".", o: ["Benar (True)", "Salah (False)"], a: 1 },
+        { q: "\"On\" digunakan untuk menunjukkan benda di atas benda lain.", o: ["Benar (True)", "Salah (False)"], a: 0 },
+        { q: "Kalimat yang benar adalah: \"There are a dog in the garden.\"", o: ["Benar (True)", "Salah (False)"], a: 1 },
+        { q: "Kalimat yang benar adalah: \"There is a whiteboard under the Garuda.\"", o: ["Benar (True)", "Salah (False)"], a: 0 }
+    ];
+
+    let currentIdx = 0;
+    let correctAnswers = 0;
+    let selectedIdx = null;
+
+    const qText = document.getElementById('question-text');
+    const optionsList = document.getElementById('options-list');
+    const nextBtn = document.getElementById('next-btn');
+    const counter = document.getElementById('q-counter');
+    const progressBar = document.getElementById('progress-bar');
+    const quizBody = document.getElementById('quiz-body');
+    const resultPage = document.getElementById('result-page');
+    const scoreDisplay = document.getElementById('score-number');
+
+    function initQuiz() {
+        const item = quizData[currentIdx];
+        selectedIdx = null;
+        nextBtn.disabled = true;
+        
+        // Progress UI
+        counter.innerText = `${currentIdx + 1} / ${quizData.length}`;
+        progressBar.style.width = `${((currentIdx + 1) / quizData.length) * 100}%`;
+
+        // Content
+        qText.innerText = item.q;
+        optionsList.innerHTML = '';
+        
+        item.o.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => {
+                selectedIdx = i;
+                document.querySelectorAll('.btn-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                nextBtn.disabled = false;
+            };
+            optionsList.appendChild(btn);
+        });
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (selectedIdx === quizData[currentIdx].a) {
+            correctAnswers++;
+        }
+
+        currentIdx++;
+        if (currentIdx < quizData.length) {
+            initQuiz();
+        } else {
+            showFinalScore();
+        }
+    });
+
+    function showFinalScore() {
+        quizBody.classList.add('hidden');
+        document.getElementById('quiz-header').classList.add('hidden');
+        resultPage.classList.remove('hidden');
+        
+        // Kalkulasi nilai (pembulatan tanpa angka desimal)
+        const finalPercentage = Math.round((correctAnswers / quizData.length) * 100);
+        scoreDisplay.innerText = finalPercentage;
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
