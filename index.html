@@ -11,7 +11,6 @@
         .loading { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
         
-        /* Scrollbar cantik */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
@@ -27,12 +26,12 @@
                 <h1 class="text-4xl md:text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
                     Zona Belajar Interaktif
                 </h1>
-                <p class="text-slate-400 text-lg">Jelajahi berbagai kategori pelajaran di bawah ini.</p>
+                <p class="text-slate-400 text-lg">Materi terbaru selalu muncul di urutan pertama.</p>
             </header>
 
             <div id="main-container" class="space-y-12">
                 <div class="text-slate-500 loading pt-10 text-center text-xl">
-                    📡 Memindai kategori dan folder game...
+                    📡 Memindai data terbaru...
                 </div>
             </div>
         </div>
@@ -47,7 +46,6 @@
                         Reset
                     </button>
                 </div>
-
                 <div class="overflow-y-auto flex-grow pr-2 space-y-3" id="history-container">
                     <p class="text-slate-500 text-sm text-center mt-10 italic">Belum ada misi selesai.</p>
                 </div>
@@ -66,123 +64,154 @@
                     KELUAR ❌
                 </button>
             </div>
-            
             <iframe id="game-frame" src="" class="w-full flex-grow bg-[#0f172a]" frameborder="0"></iframe>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // ✅ KONFIGURASI OTOMATIS
+        // ✅ KONFIGURASI PENGGUNA
         // ==========================================
         const GITHUB_USERNAME = 'tanzilhuda1215-source'; 
         const REPO_NAME = 'SisLearn';                    
         const FOLDER_NAME = 'games';                     
 
-        // Anda tetap bisa memberi ikon khusus untuk game tertentu di sini
-        // Jika tidak ada di daftar ini, ikon akan otomatis 🎮
         const CUSTOM_ICONS = {
             "space.html": "🚀",
             "glass.html": "💎",
-            "Pronouncation-Games.html": "🗣️",
-            "kuis tanda koma.html": "📝",
-            "Quiz kata sifat kata benda.html": "grammar"
+            "Pronouncation-Games.html": "🗣️"
         };
         // ==========================================
 
         let spyInterval = null;
         let currentGameTitle = "";
 
-        // --- FUNGSI 1: AMBIL DATA DARI FOLDER ---
+        // --- FUNGSI 0: PARSING TANGGAL DARI NAMA FILE ---
+        function parseFileInfo(filename) {
+            // Regex untuk mendeteksi format: YYYY-MM-DD-Judul.html
+            const dateRegex = /^(\d{4})-(\d{2})-(\d{2})-(.*)\.html$/;
+            const match = filename.match(dateRegex);
+
+            if (match) {
+                const year = match[1];
+                const month = match[2];
+                const day = match[3];
+                const rawTitle = match[4];
+
+                const dateObj = new Date(year, month - 1, day);
+                // Format tanggal cantik: 28 Feb 2024
+                const formattedDate = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                return {
+                    dateObj: dateObj,         // Untuk sorting (Komputer)
+                    dateDisplay: formattedDate, // Untuk tampilan (Manusia)
+                    cleanName: rawTitle.replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase()
+                };
+            } else {
+                // Jika file TIDAK pakai tanggal (format lama)
+                return {
+                    dateObj: new Date(0), // Dianggap tanggal jaman purba (agar di bawah)
+                    dateDisplay: "",      // Tidak menampilkan tanggal
+                    cleanName: filename.replace('.html', '').replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase()
+                };
+            }
+        }
+
+        // --- FUNGSI 1: AMBIL DATA ---
         async function loadContent() {
             const mainContainer = document.getElementById('main-container');
             const rootApiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_NAME}`;
 
             try {
-                // 1. Ambil isi folder 'games' (Root)
                 const response = await fetch(rootApiUrl);
-                if (!response.ok) throw new Error("Gagal koneksi ke GitHub (Cek Repo/Folder).");
+                if (!response.ok) throw new Error("Gagal koneksi ke GitHub.");
                 const items = await response.json();
 
-                mainContainer.innerHTML = ''; // Bersihkan loading
+                mainContainer.innerHTML = ''; 
 
-                // 2. Pisahkan mana FILE (Game di luar) dan mana FOLDER (Kategori)
+                // Pisahkan File & Folder
                 const files = items.filter(item => item.type === 'file' && item.name.endsWith('.html'));
                 const folders = items.filter(item => item.type === 'dir');
 
-                // 3. Render Game yang tidak masuk kategori (File di root 'games')
+                // Render Game Umum (Tanpa Kategori)
                 if (files.length > 0) {
                     renderCategorySection("Game Umum / Lainnya", files);
                 }
 
-                // 4. Loop setiap folder untuk dijadikan Kategori
-                // Kita gunakan Promise.all agar loadingnya paralel (cepat)
+                // Render Kategori (Folder)
                 await Promise.all(folders.map(async (folder) => {
-                    const folderUrl = folder.url; // URL API untuk isi folder tersebut
-                    const folderName = folder.name.replace(/-/g, ' ').toUpperCase(); // Rapikan nama folder
+                    const folderUrl = folder.url; 
+                    const folderName = folder.name.replace(/-/g, ' ').toUpperCase(); 
                     
                     try {
                         const resp = await fetch(folderUrl);
                         const folderItems = await resp.json();
-                        // Ambil hanya file html di dalam folder itu
                         const gameInFolder = folderItems.filter(item => item.type === 'file' && item.name.endsWith('.html'));
                         
                         if (gameInFolder.length > 0) {
                             renderCategorySection(folderName, gameInFolder);
                         }
                     } catch (err) {
-                        console.error(`Gagal membuka kategori ${folderName}`, err);
+                        console.error(`Skip kategori ${folderName}`, err);
                     }
                 }));
 
                 if (mainContainer.innerHTML === '') {
-                    mainContainer.innerHTML = '<div class="text-center text-red-400 text-xl mt-10">Belum ada folder atau file game ditemukan.</div>';
+                    mainContainer.innerHTML = '<div class="text-center text-red-400 mt-10">Folder kosong.</div>';
                 }
 
             } catch (error) {
                 console.error(error);
-                mainContainer.innerHTML = `<div class="bg-red-900/50 p-6 rounded-xl border border-red-500 text-red-200">Error: ${error.message}</div>`;
+                mainContainer.innerHTML = `<div class="text-red-500 p-4">Error: ${error.message}</div>`;
             }
         }
 
-        // --- FUNGSI 2: TAMPILKAN BAGIAN KATEGORI ---
+        // --- FUNGSI 2: RENDER KARTU DENGAN TANGGAL ---
         function renderCategorySection(categoryTitle, fileList) {
             const mainContainer = document.getElementById('main-container');
             
-            // Buat Judul Kategori
+            // 1. PROSES & SORTING DATA
+            // Kita ubah dulu file mentah menjadi data yang ada tanggalnya
+            const processedFiles = fileList.map(file => {
+                const info = parseFileInfo(file.name);
+                return { ...file, ...info };
+            });
+
+            // Urutkan: Tanggal Terbaru (Z-A) di atas
+            processedFiles.sort((a, b) => b.dateObj - a.dateObj);
+
+            // 2. BUAT TAMPILAN
             const section = document.createElement('div');
-            section.className = "animate-fade-in";
+            section.className = "animate-fade-in order-last";
             
             let gridHTML = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">`;
             
-            fileList.forEach(file => {
-                // Logika Tampilan Kartu
-                const rawName = file.name.replace('.html', '');
-                const displayName = rawName.replace(/-/g, ' ').replace(/_/g, ' ').toUpperCase(); // Hapus .html & rapikan
-                
-                // Cek ikon khusus, kalau tidak ada pakai default
+            processedFiles.forEach(file => {
                 let icon = CUSTOM_ICONS[file.name] || "🎮";
-                if(rawName.toLowerCase().includes("math") || rawName.toLowerCase().includes("matematika")) icon = "🧮";
-                if(rawName.toLowerCase().includes("grammar") || rawName.toLowerCase().includes("kata")) icon = "abc";
+                // Auto Icon sederhana
+                if(file.cleanName.includes("MATH")) icon = "🧮";
+                if(file.cleanName.includes("KATA")) icon = "abc";
 
-                // Path file (karena bisa di dalam subfolder, kita pakai path dari API)
-                const fullPath = file.path; 
+                // Badge Tanggal (Hanya muncul jika ada tanggal)
+                const dateBadge = file.dateDisplay 
+                    ? `<span class="text-[10px] font-mono text-teal-300 bg-slate-900 px-2 py-1 rounded border border-teal-900/50 flex items-center gap-1">📅 ${file.dateDisplay}</span>`
+                    : `<span class="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded">GAME</span>`;
 
                 gridHTML += `
                     <div class="group relative bg-slate-800 rounded-2xl p-5 border border-slate-700 hover:border-teal-400 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-teal-500/10 flex flex-col h-full">
-                        <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4">
                             <div class="text-4xl bg-slate-900/50 w-14 h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                                 ${icon}
                             </div>
-                            <span class="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded">HTML5</span>
+                            ${dateBadge}
                         </div>
                         
                         <h3 class="text-lg font-bold text-white mb-2 leading-tight group-hover:text-teal-300">
-                            ${displayName}
+                            ${file.cleanName}
                         </h3>
                         
                         <div class="mt-auto pt-4">
-                            <button onclick="openGame('${fullPath}', '${displayName}')" 
+                            <button onclick="openGame('${file.path}', '${file.cleanName}')" 
                                class="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-500 hover:to-teal-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
                                 <span>Mainkan</span> 🚀
                             </button>
@@ -194,7 +223,7 @@
             gridHTML += `</div>`;
 
             section.innerHTML = `
-                <div class="flex items-center gap-4 mb-6">
+                <div class="flex items-center gap-4 mb-6 mt-8">
                     <div class="h-8 w-1 bg-teal-500 rounded-full"></div>
                     <h2 class="text-2xl font-bold text-white tracking-wide">${categoryTitle}</h2>
                     <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">${fileList.length} Game</span>
@@ -205,18 +234,13 @@
             mainContainer.appendChild(section);
         }
 
-        // --- FUNGSI 3: BUKA GAME (POPUP & MATA-MATA SKOR) ---
+        // --- FUNGSI 3, 4, 5 (GAME & RIWAYAT - TETAP SAMA) ---
         function openGame(path, title) {
             const modal = document.getElementById('game-modal');
             const iframe = document.getElementById('game-frame');
-            
             document.getElementById('modal-title').innerText = title;
             currentGameTitle = title;
-            
-            // GitHub API memberikan path lengkap (misal: games/BAHASA INGGRIS/file.html)
-            // Iframe bisa membacanya langsung relatif dari root
             iframe.src = path; 
-            
             modal.classList.remove('hidden');
             startSpying();
         }
@@ -230,45 +254,35 @@
             loadHistory();
         }
 
-        // --- FUNGSI 4: MATA-MATA (Auto-Save Score) ---
         function startSpying() {
             clearInterval(spyInterval);
             let scoreCaptured = false;
-
             spyInterval = setInterval(() => {
                 if(scoreCaptured) return;
                 const iframe = document.getElementById('game-frame');
-                
                 try {
                     const gameDoc = iframe.contentDocument || iframe.contentWindow.document;
                     if (gameDoc) {
-                        // Cek elemen skor (id="final-score" atau "current-score")
                         const resultScreen = gameDoc.getElementById('result-screen');
-                        // Cek apakah layar hasil muncul (tidak hidden)
                         if (resultScreen && !resultScreen.classList.contains('hidden') && resultScreen.style.display !== 'none') {
-                            
                             const scoreEl = gameDoc.getElementById('final-score') || gameDoc.getElementById('score');
-                            
                             if (scoreEl) {
                                 const finalScore = scoreEl.innerText;
                                 saveToHistory(currentGameTitle, finalScore);
                                 scoreCaptured = true;
                                 clearInterval(spyInterval);
-                                // Efek visual kecil di tombol tutup agar user sadar
-                                alert(`🎉 Selamat! Skor ${finalScore} berhasil disimpan.`);
+                                alert(`🎉 Skor ${finalScore} tersimpan!`);
                             }
                         }
                     }
-                } catch (e) { /* Abaikan error cross-origin jika ada */ }
+                } catch (e) { }
             }, 1000);
         }
 
-        // --- FUNGSI 5: RIWAYAT (Local Storage) ---
         function saveToHistory(game, score) {
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
             const newEntry = { game, score, date: dateStr, time: timeStr };
             let history = JSON.parse(localStorage.getItem('gameHistory') || '[]');
             history.unshift(newEntry);
@@ -279,12 +293,10 @@
         function loadHistory() {
             const container = document.getElementById('history-container');
             const history = JSON.parse(localStorage.getItem('gameHistory') || '[]');
-
             if (history.length === 0) {
-                container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10 italic">Mulai mainkan game untuk mencatat rekor!</p>';
+                container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10 italic">Belum ada misi.</p>';
                 return;
             }
-
             container.innerHTML = '';
             history.forEach(item => {
                 const itemHTML = `
@@ -295,7 +307,6 @@
                         </div>
                         <div class="text-right bg-slate-800 px-2 py-1 rounded-lg">
                             <span class="block text-lg font-bold text-yellow-400 leading-none">${item.score}</span>
-                            <span class="text-[8px] text-slate-500 uppercase">Poin</span>
                         </div>
                     </div>
                 `;
@@ -304,16 +315,14 @@
         }
 
         function clearHistory() {
-            if(confirm("Hapus semua riwayat permainan?")) {
+            if(confirm("Hapus semua riwayat?")) {
                 localStorage.removeItem('gameHistory');
                 loadHistory();
             }
         }
 
-        // Mulai aplikasi
         loadContent();
         loadHistory();
-
     </script>
 </body>
 </html>
