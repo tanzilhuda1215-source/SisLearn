@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Pengurangan Cepat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: #ffe4e6; /* Rose background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(225, 29, 72, 0.15);
+            width: 100%;
+            max-width: 480px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .input-setting {
+            border: 2px solid #fecdd3;
+            border-radius: 12px;
+            padding: 8px 12px;
+            width: 100%;
+            font-weight: bold;
+            color: #be123c;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-setting:focus {
+            border-color: #f43f5e;
+        }
+
+        .option-btn {
+            background: #fff1f2;
+            border: 2px solid #fda4af;
+            color: #9f1239;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 1rem;
+            border-radius: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-4px);
+            background: #f43f5e;
+            color: white;
+            border-color: #f43f5e;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+        }
+
+        .option-btn.correct {
+            background: #10b981 !important;
+            border-color: #059669 !important;
+            color: white !important;
+        }
+
+        .option-btn.wrong {
+            background: #ef4444 !important;
+            border-color: #b91c1c !important;
+            color: white !important;
+            opacity: 0.6;
+        }
+
+        .timer-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .timer-fill {
+            height: 100%;
+            background: #f43f5e;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .hidden { display: none; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- 1. PENGATURAN AWAL (SETUP SCREEN) -->
+    <div id="setup-screen" class="card fade-in text-center">
+        <div class="mb-6">
+            <span class="text-6xl">➖</span>
+        </div>
+        <h1 class="text-3xl font-bold text-rose-600 mb-2">Pengurangan Cepat</h1>
+        <p class="text-rose-400 mb-8 text-sm">Atur tantanganmu sebelum mulai!</p>
+
+        <div class="grid grid-cols-2 gap-4 text-left mb-6">
+            <div>
+                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Angka A (Max)</label>
+                <input type="number" id="input-max-a" class="input-setting" value="9" min="5">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Angka B (Max)</label>
+                <input type="number" id="input-max-b" class="input-setting" value="4" min="1">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Waktu (Detik)</label>
+                <input type="number" id="input-timer" class="input-setting" value="5" min="3">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Jml Soal</label>
+                <input type="number" id="input-total" class="input-setting" value="15" min="5">
+            </div>
+        </div>
+
+        <button onclick="startGame()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg">
+            MULAI TANTANGAN 🚀
+        </button>
+    </div>
+
+    <!-- 2. LAYAR PERMAINAN (GAME SCREEN) -->
+    <div id="game-screen" class="card hidden text-center">
+        <div class="flex justify-between items-center mb-4">
+            <span class="bg-rose-100 text-rose-600 px-3 py-1 rounded-lg text-sm font-bold" id="q-counter">1 / 15</span>
+            <div class="flex items-center gap-1">
+                <span class="text-lg">⭐</span>
+                <span class="text-xl font-bold text-yellow-500" id="current-score">0</span>
+            </div>
+        </div>
+
+        <div class="timer-bar">
+            <div id="timer-fill" class="timer-fill"></div>
+        </div>
+
+        <div class="py-8">
+            <div class="text-6xl font-bold text-slate-700 mb-2 flex justify-center items-center gap-4">
+                <span id="num-a" class="text-rose-600">?</span>
+                <span class="text-slate-400">-</span>
+                <span id="num-b" class="text-blue-500">?</span>
+            </div>
+            <div class="text-2xl text-slate-400 font-bold">= ?</div>
+        </div>
+
+        <div id="options-grid" class="grid grid-cols-2 gap-4 mt-4">
+            <!-- Tombol jawaban akan muncul di sini -->
+        </div>
+        
+        <p id="feedback-text" class="h-6 mt-4 text-sm font-bold text-rose-500"></p>
+    </div>
+
+    <!-- 3. LAYAR HASIL (WAJIB ADA ID 'result-screen') -->
+    <div id="result-screen" class="card hidden text-center">
+        <div class="mb-6">
+            <div class="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center mx-auto text-5xl">
+                🏆
+            </div>
+        </div>
+        
+        <h2 class="text-3xl font-bold text-slate-800 mb-2">Selesai!</h2>
+        <p class="text-slate-500 mb-8">Nilai akhir kamu adalah:</p>
+
+        <!-- ID 'final-score' WAJIB ADA UNTUK SISTEM RIWAYAT -->
+        <div class="text-7xl font-black text-rose-600 mb-8 tracking-tighter">
+            <span id="final-score">0</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 text-sm text-slate-600 mb-8 bg-rose-50 p-4 rounded-xl">
+            <div>
+                <span class="block font-bold text-lg text-green-600" id="stat-correct">0</span>
+                Benar
+            </div>
+            <div>
+                <span class="block font-bold text-lg text-slate-800" id="stat-total">0</span>
+                Total Soal
+            </div>
+        </div>
+
+        <button onclick="location.reload()" class="w-full border-2 border-rose-200 text-rose-600 font-bold py-3 rounded-xl hover:bg-rose-50 transition-colors">
+            Main Lagi ↺
+        </button>
+    </div>
+
+    <script>
+        // Variabel Global
+        let maxA = 9;
+        let maxB = 4;
+        let timePerQuestion = 5;
+        let totalQuestions = 15;
+        
+        let currentQ = 0;
+        let score = 0;
+        let correctCount = 0;
+        let timerInterval;
+        let timeLeft;
+        let canAnswer = false;
+
+        // Element
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const numAEl = document.getElementById('num-a');
+        const numBEl = document.getElementById('num-b');
+        const optionsGrid = document.getElementById('options-grid');
+        const timerFill = document.getElementById('timer-fill');
+        const feedbackText = document.getElementById('feedback-text');
+
+        function startGame() {
+            // Ambil nilai dari input user
+            maxA = parseInt(document.getElementById('input-max-a').value) || 9;
+            maxB = parseInt(document.getElementById('input-max-b').value) || 4;
+            timePerQuestion = parseInt(document.getElementById('input-timer').value) || 5;
+            totalQuestions = parseInt(document.getElementById('input-total').value) || 15;
+
+            // Validasi sederhana agar soal masuk akal
+            if (maxA < maxB) maxA = maxB + 2; 
+
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            
+            score = 0;
+            currentQ = 0;
+            correctCount = 0;
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQ >= totalQuestions) {
+                endGame();
+                return;
+            }
+
+            currentQ++;
+            document.getElementById('q-counter').innerText = `${currentQ} / ${totalQuestions}`;
+            feedbackText.innerText = "";
+            canAnswer = true;
+
+            // Generate Soal (A - B = ?)
+            // Pastikan A >= B agar hasilnya tidak negatif
+            let numB = Math.floor(Math.random() * maxB) + 1; // 1 s/d maxB
+            // Pastikan numA minimal sama dengan numB
+            let minA = numB; 
+            let numA = Math.floor(Math.random() * (maxA - minA + 1)) + minA;
+
+            let correctAnswer = numA - numB;
+
+            numAEl.innerText = numA;
+            numBEl.innerText = numB;
+
+            // Generate Pilihan Jawaban
+            generateOptions(correctAnswer);
+
+            // Reset Timer
+            startTimer();
+        }
+
+        function generateOptions(correct) {
+            optionsGrid.innerHTML = '';
+            let answers = new Set();
+            answers.add(correct);
+
+            while(answers.size < 4) {
+                // Jawaban pengecoh di sekitar jawaban benar
+                let wrong = correct + Math.floor(Math.random() * 5) - 2; 
+                if (wrong >= 0 && wrong !== correct) {
+                    answers.add(wrong);
+                }
+            }
+
+            // Acak posisi
+            let answersArray = Array.from(answers).sort(() => Math.random() - 0.5);
+
+            answersArray.forEach(ans => {
+                let btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = ans;
+                btn.onclick = () => checkAnswer(ans, correct, btn);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = timePerQuestion;
+            timerFill.style.transition = 'none';
+            timerFill.style.width = '100%';
+            
+            // Force reflow
+            void timerFill.offsetWidth;
+
+            timerFill.style.transition = `width ${timePerQuestion}s linear`;
+            timerFill.style.width = '0%';
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft < 0) {
+                    checkAnswer(-999, -1, null); // Waktu habis = salah
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selected, correct, btnElement) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timerInterval);
+
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            // Logika Benar/Salah
+            if (selected === correct) {
+                if(btnElement) btnElement.classList.add('correct');
+                score += (100 / totalQuestions); // Tambah skor proporsional
+                correctCount++;
+                feedbackText.innerText = "BENAR! 🎉";
+                feedbackText.className = "h-6 mt-4 text-sm font-bold text-green-500";
+            } else {
+                if(btnElement) btnElement.classList.add('wrong');
+                // Tunjukkan yang benar
+                buttons.forEach(b => {
+                    if (parseInt(b.innerText) === correct) b.classList.add('correct');
+                });
+                feedbackText.innerText = "SALAH! 😢";
+                feedbackText.className = "h-6 mt-4 text-sm font-bold text-red-500";
+            }
+
+            // Update skor sementara (dibulatkan)
+            document.getElementById('current-score').innerText = Math.round(score);
+
+            // Jeda sebelum soal berikutnya
+            setTimeout(() => {
+                nextQuestion();
+            }, 1000);
+        }
+
+        function endGame() {
+            gameScreen.classList.add('hidden');
+            
+            // WAJIB: Munculkan layar hasil agar terbaca oleh sistem 'index.html'
+            resultScreen.classList.remove('hidden');
+
+            const finalScoreVal = Math.round(score);
+            
+            // WAJIB: Masukkan nilai ke elemen dengan ID 'final-score'
+            document.getElementById('final-score').innerText = finalScoreVal;
+            
+            document.getElementById('stat-correct').innerText = correctCount;
+            document.getElementById('stat-total').innerText = totalQuestions;
+        }
+    </script>
+
+</body>
+</html>
