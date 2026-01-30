@@ -7,37 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
-        
-        body {
-            background-color: #f8fafc;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .option-card {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .option-card:hover:not(.disabled) {
-            transform: translateY(-2px);
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-        }
-        .option-card.selected {
-            background-color: #3b82f6;
-            border-color: #2563eb;
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
+        body { background-color: #f8fafc; font-family: 'Quicksand', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .option-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-card:hover:not(.disabled) { transform: translateY(-2px); border-color: #3b82f6; background-color: #eff6ff; }
+        .option-card.selected { background-color: #3b82f6; border-color: #2563eb; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
         .hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
 <div class="glass-card w-full max-w-xl rounded-3xl shadow-2xl p-8">
-    <!-- Header -->
     <div id="quiz-header" class="mb-8">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold text-blue-600">English Quiz</h1>
@@ -49,72 +29,33 @@
         </div>
     </div>
 
-    <!-- Quiz Content -->
     <div id="quiz-body">
-        <div id="reading-context" class="mb-4 p-4 bg-gray-50 rounded-xl border-l-4 border-blue-400 italic text-sm text-gray-600 hidden">
-            <!-- Teks bacaan akan muncul di sini jika ada -->
-        </div>
-
+        <div id="reading-context" class="mb-4 p-4 bg-gray-50 rounded-xl border-l-4 border-blue-400 italic text-sm text-gray-600 hidden"></div>
         <div id="question-container" class="mb-8">
-            <h2 id="question-text" class="text-xl font-bold text-gray-800 leading-relaxed">
-                Loading question...
-            </h2>
+            <h2 id="question-text" class="text-xl font-bold text-gray-800 leading-relaxed">Loading question...</h2>
             <p id="multi-hint" class="text-xs text-blue-500 font-bold mt-2 hidden italic">* Pilih 2 jawaban yang benar</p>
         </div>
-
-        <div id="options-grid" class="grid grid-cols-1 gap-3">
-            <!-- Pilihan jawaban -->
-        </div>
-
-        <button id="next-btn" class="mt-10 w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-30 disabled:shadow-none transition-all" disabled>
-            Pertanyaan Berikutnya
-        </button>
+        <div id="options-grid" class="grid grid-cols-1 gap-3"></div>
+        <button id="next-btn" class="mt-10 w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-30 disabled:shadow-none transition-all" disabled>Pertanyaan Berikutnya</button>
     </div>
 
-    <!-- Result Page -->
-    <div id="result-page" class="hidden text-center py-10">
+    <div id="result-screen" class="hidden text-center py-10">
         <div class="inline-block p-6 rounded-full bg-blue-100 text-blue-600 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
         <h2 class="text-3xl font-black text-gray-800 mb-2">Selesai!</h2>
         <p class="text-gray-500 mb-8">Nilai evaluasi Anda adalah:</p>
         <div id="final-score" class="text-9xl font-black text-blue-600 mb-10 tracking-tighter">0</div>
-        <button onclick="location.reload()" class="bg-gray-800 text-white px-12 py-4 rounded-2xl font-bold hover:bg-black transition-all">
-            Ulangi Evaluasi
-        </button>
+        <button onclick="location.reload()" class="bg-gray-800 text-white px-12 py-4 rounded-2xl font-bold hover:bg-black transition-all">Ulangi Evaluasi</button>
     </div>
 </div>
 
 <script>
     const questions = [
-        { 
-            context: '"My name is Kiki. My uncle, Wawan, and my aunt, Siska, have two children. So, I have two cousins. Their names are Tania and Hendi."',
-            q: "Kiki has an uncle. What is his name?", 
-            o: ["His name is Kiki.", "His name is Hendi.", "His name is Wawan."], 
-            a: [2] 
-        },
-        { 
-            context: '"My name is Kiki. My uncle, Wawan, and my aunt, Siska, have two children. So, I have two cousins. Their names are Tania and Hendi."',
-            q: "What is Kiki's cousin's name?", 
-            o: ["Her name is Siska.", "Her name is Tania.", "Her name is Wawan."], 
-            a: [1] 
-        },
-        { 
-            context: '"Hi! I am Fika and this is my family. My brother\'s name is Suta. My sister\'s name is Dinda. My mother\'s name is Sari and my father\'s name is Tomi. My uncle\'s name is Dion. His wife, Intan, is my aunt. My uncle and aunt have a daughter. Her name is Nia."',
-            q: "Which statements are true about Fika's family?", 
-            o: ["Dinda is her sister.", "Intan is her mother.", "Nia is her cousin."], 
-            a: [0, 2],
-            multi: true
-        },
-        { 
-            context: '"Hi! I am Fika and this is my family. My brother\'s name is Suta. My sister\'s name is Dinda. My mother\'s name is Sari and my father\'s name is Tomi. My uncle\'s name is Dion. His wife, Intan, is my aunt. My uncle and aunt have a daughter. Her name is Nia."',
-            q: "Who are Fika's parents?", 
-            o: ["Dion", "Tomi", "Sari"], 
-            a: [1, 2],
-            multi: true
-        },
+        { context: '"My name is Kiki. My uncle, Wawan, and my aunt, Siska, have two children. So, I have two cousins. Their names are Tania and Hendi."', q: "Kiki has an uncle. What is his name?", o: ["His name is Kiki.", "His name is Hendi.", "His name is Wawan."], a: [2] },
+        { context: '"My name is Kiki. My uncle, Wawan, and my aunt, Siska, have two children. So, I have two cousins. Their names are Tania and Hendi."', q: "What is Kiki's cousin's name?", o: ["Her name is Siska.", "Her name is Tania.", "Her name is Wawan."], a: [1] },
+        { context: '"Hi! I am Fika and this is my family. My brother\'s name is Suta. My sister\'s name is Dinda. My mother\'s name is Sari and my father\'s name is Tomi. My uncle\'s name is Dion. His wife, Intan, is my aunt. My uncle and aunt have a daughter. Her name is Nia."', q: "Which statements are true about Fika's family?", o: ["Dinda is her sister.", "Intan is her mother.", "Nia is her cousin."], a: [0, 2], multi: true },
+        { context: '"Hi! I am Fika and this is my family. My brother\'s name is Suta. My sister\'s name is Dinda. My mother\'s name is Sari and my father\'s name is Tomi. My uncle\'s name is Dion. His wife, Intan, is my aunt. My uncle and aunt have a daughter. Her name is Nia."', q: "Who are Fika's parents?", o: ["Dion", "Tomi", "Sari"], a: [1, 2], multi: true },
         { q: "Hello! ___ name is Rudi. I am eight years old.", o: ["My", "Your", "His", "Their"], a: [0] },
         { q: "My uncle and aunt have four kids. ___ kids are very nice.", o: ["Our", "Their", "Its", "Her"], a: [1] },
         { q: "Cindy is my cousin. ___ hobby is swimming.", o: ["His", "My", "Her", "Your"], a: [2] },
@@ -128,16 +69,14 @@
         { q: "We have a big family. ___ family is always happy.", o: ["Their", "Your", "Our", "Its"], a: [2] }
     ];
 
-    let currentIdx = 0;
-    let score = 0;
-    let selectedIndices = [];
-
+    let currentIdx = 0; let score = 0; let selectedIndices = [];
     const qText = document.getElementById('question-text');
     const optionsGrid = document.getElementById('options-grid');
     const nextBtn = document.getElementById('next-btn');
     const counter = document.getElementById('q-counter');
     const progressBar = document.getElementById('progress-bar');
-    const resultPage = document.getElementById('result-page');
+    // PERBAIKAN: Referensi ID
+    const resultPage = document.getElementById('result-screen');
     const quizBody = document.getElementById('quiz-body');
     const finalScore = document.getElementById('final-score');
     const readingContext = document.getElementById('reading-context');
@@ -147,35 +86,17 @@
         const item = questions[currentIdx];
         selectedIndices = [];
         nextBtn.disabled = true;
-
-        // Header & Progress
         counter.innerText = `${currentIdx + 1} / ${questions.length}`;
         progressBar.style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
-
-        // Context (Reading Text)
-        if (item.context) {
-            readingContext.innerText = item.context;
-            readingContext.classList.remove('hidden');
-        } else {
-            readingContext.classList.add('hidden');
-        }
-
-        // Question & Hint
+        if (item.context) { readingContext.innerText = item.context; readingContext.classList.remove('hidden'); } else { readingContext.classList.add('hidden'); }
         qText.innerText = `${currentIdx + 1}. ${item.q}`;
-        if (item.multi) {
-            multiHint.classList.remove('hidden');
-        } else {
-            multiHint.classList.add('hidden');
-        }
-
-        // Options
+        if (item.multi) multiHint.classList.remove('hidden'); else multiHint.classList.add('hidden');
         optionsGrid.innerHTML = '';
         const labels = ['A', 'B', 'C', 'D'];
         item.o.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-card border-2 border-gray-100 p-4 rounded-2xl flex items-center text-left font-semibold text-gray-700';
             btn.innerHTML = `<span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-4 text-sm font-bold">${labels[i]}</span> ${opt}`;
-            
             btn.onclick = () => handleSelection(i, btn, item.multi);
             optionsGrid.appendChild(btn);
         });
@@ -183,15 +104,8 @@
 
     function handleSelection(index, btn, isMulti) {
         if (isMulti) {
-            if (selectedIndices.includes(index)) {
-                selectedIndices = selectedIndices.filter(i => i !== index);
-                btn.classList.remove('selected');
-            } else {
-                if (selectedIndices.length < 2) {
-                    selectedIndices.push(index);
-                    btn.classList.add('selected');
-                }
-            }
+            if (selectedIndices.includes(index)) { selectedIndices = selectedIndices.filter(i => i !== index); btn.classList.remove('selected'); }
+            else { if (selectedIndices.length < 2) { selectedIndices.push(index); btn.classList.add('selected'); } }
             nextBtn.disabled = selectedIndices.length !== 2;
         } else {
             selectedIndices = [index];
@@ -203,52 +117,24 @@
 
     nextBtn.addEventListener('click', () => {
         const item = questions[currentIdx];
-        
-        // Cek jawaban
-        if (item.multi) {
-            const isAllCorrect = item.a.every(val => selectedIndices.includes(val)) && 
-                               selectedIndices.length === item.a.length;
-            if (isAllCorrect) score++;
-        } else {
-            if (selectedIndices[0] === item.a[0]) score++;
-        }
-
+        if (item.multi) { const isAllCorrect = item.a.every(val => selectedIndices.includes(val)) && selectedIndices.length === item.a.length; if (isAllCorrect) score++; }
+        else { if (selectedIndices[0] === item.a[0]) score++; }
         currentIdx++;
-        if (currentIdx < questions.length) {
-            loadQuestion();
-        } else {
-            showResults();
-        }
+        if (currentIdx < questions.length) loadQuestion(); else showResults();
     });
 
     function showResults() {
         quizBody.classList.add('hidden');
         document.getElementById('quiz-header').classList.add('hidden');
         resultPage.classList.remove('hidden');
-
         const resultValue = Math.round((score / questions.length) * 100);
-        
-        // Animasi angka skor
         let startValue = 0;
         const duration = 1500;
         const stepTime = resultValue === 0 ? 0 : Math.abs(Math.floor(duration / resultValue));
-        
-        if (resultValue === 0) {
-            finalScore.innerText = "0";
-            return;
-        }
-
-        const timer = setInterval(() => {
-            startValue += 1;
-            finalScore.innerText = startValue;
-            if (startValue === resultValue) {
-                clearInterval(timer);
-            }
-        }, stepTime);
+        if (resultValue === 0) { finalScore.innerText = "0"; return; }
+        const timer = setInterval(() => { startValue += 1; finalScore.innerText = startValue; if (startValue === resultValue) clearInterval(timer); }, stepTime);
     }
-
     loadQuestion();
 </script>
-
 </body>
 </html>
