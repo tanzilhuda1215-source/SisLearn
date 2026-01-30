@@ -8,36 +8,17 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
         
-        body {
-            background-color: #f0fdf4;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .option-card {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .option-card:hover {
-            transform: translateY(-2px);
-            border-color: #10b981;
-            background-color: #f0fdf4;
-        }
-        .option-card.selected {
-            background-color: #10b981;
-            border-color: #059669;
-            color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
+        body { background-color: #f0fdf4; font-family: 'Quicksand', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .option-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-card:hover { transform: translateY(-2px); border-color: #10b981; background-color: #f0fdf4; }
+        .option-card.selected { background-color: #10b981; border-color: #059669; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
         .hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
 <div class="glass-card w-full max-w-xl rounded-3xl shadow-2xl p-8">
-    <!-- Header -->
     <div id="quiz-header" class="mb-8">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold text-emerald-600">English Quiz</h1>
@@ -49,7 +30,6 @@
         </div>
     </div>
 
-    <!-- Quiz Content -->
     <div id="quiz-body">
         <div id="question-container" class="mb-8">
             <h2 id="question-text" class="text-xl font-bold text-gray-800 leading-relaxed">
@@ -58,16 +38,14 @@
         </div>
 
         <div id="options-grid" class="grid grid-cols-1 gap-3">
-            <!-- Options will be here -->
-        </div>
+            </div>
 
         <button id="next-btn" class="mt-10 w-full bg-emerald-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-600 disabled:opacity-30 disabled:shadow-none transition-all" disabled>
             Pertanyaan Berikutnya
         </button>
     </div>
 
-    <!-- Result Page -->
-    <div id="result-page" class="hidden text-center py-10">
+    <div id="result-screen" class="hidden text-center py-10">
         <div class="inline-block p-6 rounded-full bg-emerald-100 text-emerald-600 mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -75,7 +53,9 @@
         </div>
         <h2 class="text-3xl font-black text-gray-800 mb-2">Luar Biasa!</h2>
         <p class="text-gray-500 mb-8">Hasil nilai akhir Anda adalah:</p>
+        
         <div id="final-score" class="text-9xl font-black text-emerald-500 mb-10 tracking-tighter">0</div>
+        
         <button onclick="location.reload()" class="bg-gray-800 text-white px-12 py-4 rounded-2xl font-bold hover:bg-black transition-all">
             Coba Lagi
         </button>
@@ -115,7 +95,9 @@
     const nextBtn = document.getElementById('next-btn');
     const counter = document.getElementById('q-counter');
     const progressBar = document.getElementById('progress-bar');
-    const resultPage = document.getElementById('result-page');
+    
+    // PERBAIKAN: Ubah referensi ID variabel
+    const resultPage = document.getElementById('result-screen');
     const quizBody = document.getElementById('quiz-body');
     const finalScore = document.getElementById('final-score');
 
@@ -124,11 +106,9 @@
         selectedAns = null;
         nextBtn.disabled = true;
 
-        // Update Header
         counter.innerText = `${currentIdx + 1} / ${questions.length}`;
         progressBar.style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
 
-        // Update Question
         qText.innerText = item.q;
         optionsGrid.innerHTML = '';
 
@@ -164,11 +144,12 @@
     function showResults() {
         quizBody.classList.add('hidden');
         document.getElementById('quiz-header').classList.add('hidden');
+        
+        // MUNCULKAN LAYAR HASIL AGAR INDEX.HTML BISA MEMBACA
         resultPage.classList.remove('hidden');
 
         const resultValue = Math.round((score / questions.length) * 100);
         
-        // Animasi angka skor
         let startValue = 0;
         const duration = 1500;
         const stepTime = resultValue === 0 ? 0 : Math.abs(Math.floor(duration / resultValue));
