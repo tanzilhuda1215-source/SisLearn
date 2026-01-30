@@ -26,13 +26,22 @@
 
     <div class="max-w-7xl w-full mx-auto flex justify-end mb-4">
         <div id="auth-container">
-            <button onclick="loginGoogle()" id="btn-login" class="bg-white text-slate-900 px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-200 transition flex items-center gap-2">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"> Login Simpan Riwayat
+            <button onclick="showAuthModal()" id="btn-login" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full font-bold text-sm transition flex items-center gap-2 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Login / Daftar
             </button>
-            <div id="user-info" class="hidden flex items-center gap-3">
-                <span id="user-name" class="text-sm text-slate-300">User</span>
-                <img id="user-photo" class="w-8 h-8 rounded-full border border-slate-500">
-                <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300">Keluar</button>
+
+            <div id="user-info" class="hidden flex items-center gap-3 bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
+                <div class="flex flex-col text-right">
+                    <span id="user-name" class="text-xs font-bold text-white leading-tight">User</span>
+                    <span class="text-[10px] text-slate-400">Online</span>
+                </div>
+                <img id="user-photo" class="w-8 h-8 rounded-full border-2 border-blue-500 bg-slate-600" src="https://ui-avatars.com/api/?name=User&background=random">
+                <button onclick="logout()" class="ml-2 text-xs text-red-400 hover:text-red-300 font-bold bg-red-900/20 px-2 py-1 rounded border border-red-900/50 hover:bg-red-900/40 transition">
+                    Keluar
+                </button>
             </div>
         </div>
     </div>
@@ -109,7 +118,7 @@
         // 1. KONFIGURASI FIREBASE & GITHUB
         // ==========================================
         
-       // 👇👇👇 KODE YANG SUDAH DIPERBAIKI (LENGKAP) 👇👇👇
+        // 👇👇👇 TEMPELKAN KODE DARI FIREBASE CONSOLE DI SINI 👇👇👇
         const firebaseConfig = {
             apiKey: "AIzaSyApJpiuRb_lfF8tWFEnzZnykKkKvcMB9-s",
             authDomain: "zona-belajar-f4b36.firebaseapp.com",
@@ -130,7 +139,7 @@
             firebase.initializeApp(firebaseConfig);
         }
         const auth = firebase.auth();
-        const db = firebase.database(); // Pakai Realtime Database
+        const db = firebase.database(); 
 
         // Konfigurasi GitHub
         const GITHUB_USERNAME = 'tanzilhuda1215-source'; 
@@ -147,14 +156,22 @@
         let isAdmin = false;
         let selectedItems = new Set(); 
 
-        // --- AUTHENTICATION SYSTEM ---
+        // --- AUTHENTICATION SYSTEM (EMAIL/PASSWORD) ---
+        
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
                 document.getElementById('btn-login').classList.add('hidden');
                 document.getElementById('user-info').classList.remove('hidden');
-                document.getElementById('user-name').innerText = user.displayName;
-                document.getElementById('user-photo').src = user.photoURL;
+                
+                // Gunakan email sebagai nama jika displayName kosong
+                const displayName = user.displayName || user.email.split('@')[0];
+                document.getElementById('user-name').innerText = displayName;
+                
+                // Gunakan UI Avatars jika photoURL kosong
+                const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${displayName}&background=random&color=fff`;
+                document.getElementById('user-photo').src = photoURL;
+                
                 loadHistoryRealtime(); 
             } else {
                 currentUser = null;
@@ -165,19 +182,102 @@
             }
         });
 
-        function loginGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(error => {
-                Swal.fire("Login Gagal", error.message, "error");
+        // 🔥 FUNGSI LOGIN / DAFTAR DENGAN SWEETALERT 🔥
+        async function showAuthModal() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Akses Akun',
+                html:
+                    '<input id="swal-email" class="swal2-input" placeholder="Email Anda">' +
+                    '<input id="swal-password" class="swal2-input" placeholder="Password" type="password">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Masuk',
+                denyButtonText: 'Daftar Baru',
+                showDenyButton: true,
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#3085d6', // Warna Biru untuk Login
+                denyButtonColor: '#22c55e',    // Warna Hijau untuk Daftar
+                preConfirm: () => {
+                    return [
+                        document.getElementById('swal-email').value,
+                        document.getElementById('swal-password').value
+                    ]
+                }
             });
+
+            if (formValues) {
+                const [email, password] = formValues;
+                if(!email || !password) {
+                    Swal.fire("Error", "Email dan Password wajib diisi!", "error");
+                    return;
+                }
+
+                // Cek tombol mana yang ditekan (Confirm = Login, Deny = Register)
+                // SweetAlert mengembalikan status di properti result, tapi di sini kita handle manual flow
+                // Karena Swal async structure, kita tangkap event di atas.
+                // Mari kita modifikasi sedikit logicnya agar bisa membedakan tombol.
+            }
+        }
+
+        // Revisi Fungsi Modal agar bisa membedakan tombol Login dan Daftar
+        window.showAuthModal = async function() {
+            const result = await Swal.fire({
+                title: 'Login atau Daftar',
+                text: 'Masukkan Email dan Password Anda',
+                html:
+                    '<input id="swal-email" class="swal2-input" placeholder="Email">' +
+                    '<input id="swal-password" class="swal2-input" placeholder="Password" type="password">',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'Masuk (Login)',
+                denyButtonText: 'Daftar (Register)',
+                confirmButtonColor: '#2563eb',
+                denyButtonColor: '#16a34a',
+                cancelButtonText: 'Batal',
+                preConfirm: () => {
+                    const email = document.getElementById('swal-email').value;
+                    const password = document.getElementById('swal-password').value;
+                    if (!email || !password) {
+                        Swal.showValidationMessage('Mohon isi email dan password');
+                    }
+                    return { email, password };
+                }
+            });
+
+            if (result.isConfirmed) {
+                // LOGIKA LOGIN
+                const { email, password } = result.value;
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {
+                        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                        Toast.fire({ icon: 'success', title: 'Berhasil Masuk!' });
+                    })
+                    .catch((error) => {
+                        Swal.fire("Login Gagal", error.message, "error");
+                    });
+
+            } else if (result.isDenied) {
+                // LOGIKA DAFTAR
+                const { email, password } = result.value;
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        Swal.fire("Berhasil!", "Akun berhasil dibuat. Anda sudah login otomatis.", "success");
+                    })
+                    .catch((error) => {
+                        Swal.fire("Gagal Daftar", error.message, "error");
+                    });
+            }
         }
 
         function logout() {
-            auth.signOut();
-            exitAdmin();
+            auth.signOut().then(() => {
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                Toast.fire({ icon: 'info', title: 'Anda telah keluar.' });
+                exitAdmin();
+            });
         }
 
-        // --- SISTEM GAME & FOLDER ---
+        // --- SISTEM GAME & FOLDER (SAMA) ---
         let spyInterval = null;
         let currentGameTitle = "";
 
@@ -263,11 +363,9 @@
             }, 1000);
         }
 
-        // --- 2. LOGIKA REALTIME DATABASE (PENGGANTI FIRESTORE) ---
+        // --- 2. LOGIKA REALTIME DATABASE ---
         function saveToFirebase(game, score) {
             if (!currentUser) return;
-            
-            // Simpan data di path: history/USER_ID/
             const newHistoryRef = db.ref('history/' + currentUser.uid).push();
             newHistoryRef.set({
                 game: game,
@@ -279,8 +377,6 @@
 
         function loadHistoryRealtime() {
             if (!currentUser) return;
-
-            // Baca data di path: history/USER_ID/
             const historyRef = db.ref('history/' + currentUser.uid);
             
             historyRef.on('value', (snapshot) => {
@@ -292,7 +388,6 @@
                     return;
                 }
 
-                // Ubah object ke array lalu sort berdasarkan waktu (terbaru di atas)
                 const dataArray = Object.keys(dataRaw).map(key => ({
                     id: key,
                     ...dataRaw[key]
@@ -322,7 +417,7 @@
             });
         }
 
-        // --- 3. MODE ADMINISTRATOR (REALTIME DB VERSION) ---
+        // --- 3. MODE ADMINISTRATOR ---
         async function adminMode() {
             if (!currentUser) return Swal.fire("Akses Ditolak", "Login dulu bos!", "warning");
             if (isAdmin) { exitAdmin(); return; }
