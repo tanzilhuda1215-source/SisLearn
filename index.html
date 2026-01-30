@@ -26,20 +26,22 @@
 
     <div class="max-w-7xl w-full mx-auto flex justify-end mb-4">
         <div id="auth-container">
-            <button onclick="showAuthModal()" id="btn-login" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full font-bold text-sm transition flex items-center gap-2 shadow-lg">
+            <button onclick="showLoginMenu()" id="btn-login" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full font-bold text-sm transition flex items-center gap-2 shadow-lg ring-2 ring-blue-400/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
-                Login / Daftar
+                Masuk / Daftar Akun
             </button>
 
-            <div id="user-info" class="hidden flex items-center gap-3 bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
+            <div id="user-info" class="hidden flex items-center gap-3 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 shadow-xl">
                 <div class="flex flex-col text-right">
                     <span id="user-name" class="text-xs font-bold text-white leading-tight">User</span>
-                    <span class="text-[10px] text-slate-400">Online</span>
+                    <span class="text-[10px] text-green-400 flex items-center justify-end gap-1">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Online
+                    </span>
                 </div>
-                <img id="user-photo" class="w-8 h-8 rounded-full border-2 border-blue-500 bg-slate-600" src="">
-                <button onclick="logout()" class="ml-2 text-xs text-red-400 hover:text-red-300 font-bold bg-red-900/20 px-2 py-1 rounded border border-red-900/50 hover:bg-red-900/40 transition">
+                <img id="user-photo" class="w-9 h-9 rounded-full border-2 border-blue-500 bg-slate-600" src="">
+                <button onclick="logout()" class="ml-2 text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-full font-bold transition shadow-md">
                     Keluar
                 </button>
             </div>
@@ -53,7 +55,7 @@
                 <h1 class="text-4xl md:text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
                     Zona Belajar Interaktif
                 </h1>
-                <p class="text-slate-400 text-lg">Materi terbaru selalu muncul di urutan pertama.</p>
+                <p class="text-slate-400 text-lg">Platform belajar seru dengan penyimpanan skor otomatis.</p>
             </header>
 
             <div id="main-container" class="space-y-12">
@@ -64,31 +66,34 @@
         </div>
 
         <div class="lg:col-span-1">
-            <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 sticky top-8 h-[85vh] flex flex-col shadow-xl">
+            <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 sticky top-8 h-[85vh] flex flex-col shadow-xl backdrop-blur-sm">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-yellow-400 flex items-center gap-2">
                         🏆 Riwayat Skor
                     </h2>
-                    <button onclick="adminMode()" id="btn-admin" class="text-xs bg-slate-700 hover:bg-red-600 hover:text-white px-2 py-1 rounded transition-colors text-slate-400">
+                    <button onclick="adminMode()" id="btn-admin" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded transition-colors border border-slate-600">
                         ⚙️ Kelola
                     </button>
                 </div>
 
-                <div id="admin-panel" class="hidden mb-4 bg-red-900/30 p-3 rounded-lg border border-red-500/50">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-bold text-red-200 uppercase">Mode Administrator</span>
-                        <button onclick="exitAdmin()" class="text-[10px] text-slate-400 hover:text-white">Tutup</button>
+                <div id="admin-panel" class="hidden mb-4 bg-red-900/40 p-4 rounded-xl border border-red-500/50">
+                    <div class="flex justify-between items-center mb-3 border-b border-red-500/30 pb-2">
+                        <span class="text-xs font-bold text-red-200 uppercase tracking-wider">Mode Admin</span>
+                        <button onclick="exitAdmin()" class="text-xs text-red-300 hover:text-white">✕ Tutup</button>
                     </div>
-                    <button onclick="deleteSelected()" class="w-full bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-2 rounded mb-2">
-                        Hapus Yang Dipilih 🗑️
+                    <button onclick="deleteSelected()" class="w-full bg-red-600 hover:bg-red-500 text-white text-xs font-bold py-2.5 rounded-lg mb-2 shadow-lg flex items-center justify-center gap-2">
+                        <span>🗑️</span> Hapus Yang Dipilih
                     </button>
-                    <button onclick="deleteAll()" class="w-full border border-red-500 text-red-300 hover:bg-red-500/20 text-xs font-bold py-2 rounded">
-                        Hapus SEMUA 💥
+                    <button onclick="deleteAll()" class="w-full bg-slate-800 border border-red-500 text-red-400 hover:bg-red-900/50 text-xs font-bold py-2.5 rounded-lg transition">
+                        💥 Hapus SEMUA
                     </button>
                 </div>
 
-                <div class="overflow-y-auto flex-grow pr-2 space-y-3 relative" id="history-container">
-                    <p class="text-slate-500 text-sm text-center mt-10 italic">Login untuk melihat riwayat.</p>
+                <div class="overflow-y-auto flex-grow pr-2 space-y-3 relative custom-scroll" id="history-container">
+                    <div class="flex flex-col items-center justify-center h-40 text-slate-500">
+                        <svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <p class="text-sm">Silakan login untuk<br>melihat riwayat.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,7 +120,7 @@
 
     <script>
         // ==========================================
-        // KONFIGURASI FIREBASE
+        // 1. KONFIGURASI FIREBASE
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyApJpiuRb_lfF8tWFEnzZnykKkKvcMB9-s",
@@ -127,169 +132,336 @@
             appId: "1:921644645673:web:b01e1909a1138a1b6a8b38"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        // Inisialisasi
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.database(); 
+        const db = firebase.database();
 
         // ==========================================
-        // LOGIKA AUTHENTICATION LENGKAP
+        // 2. SISTEM LOGIN BARU (DIROMBAK TOTAL)
         // ==========================================
-        let currentUser = null;
-        let isAdmin = false;
-        let selectedItems = new Set(); 
-
-        // 1. Cek Status Login Saat Load
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // User Sedang Login
-                currentUser = user;
-                document.getElementById('btn-login').classList.add('hidden');
-                document.getElementById('user-info').classList.remove('hidden');
-                
-                const displayName = user.displayName || user.email.split('@')[0];
-                document.getElementById('user-name').innerText = displayName;
-                
-                const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${displayName}&background=random&color=fff`;
-                document.getElementById('user-photo').src = photoURL;
-                
-                loadHistoryRealtime(); 
-            } else {
-                // User Belum Login
-                currentUser = null;
-                document.getElementById('btn-login').classList.remove('hidden');
-                document.getElementById('user-info').classList.add('hidden');
-                document.getElementById('history-container').innerHTML = 
-                    '<p class="text-slate-500 text-sm text-center mt-10">Silakan Login untuk melihat riwayat.</p>';
-            }
-        });
-
-        // 2. Fungsi Menampilkan Pop-Up Login (SUDAH DIPERBAIKI)
-        async function showAuthModal() {
-            const result = await Swal.fire({
-                title: 'Akses Akun',
-                html: `
-                    <input id="swal-email" class="swal2-input" placeholder="Email Anda">
-                    <input id="swal-password" class="swal2-input" placeholder="Password" type="password">
-                `,
+        
+        // Menu Pilihan Login
+        function showLoginMenu() {
+            Swal.fire({
+                title: 'Selamat Datang!',
+                text: 'Pilih metode masuk yang Anda inginkan',
                 showCancelButton: true,
-                showDenyButton: true, // Tombol Daftar
-                confirmButtonText: 'Masuk',
-                denyButtonText: 'Daftar Baru',
+                showConfirmButton: false,
                 cancelButtonText: 'Batal',
-                confirmButtonColor: '#2563eb',
-                denyButtonColor: '#16a34a',
-                footer: '<a href="#" onclick="sendMagicLink(); return false;" class="text-blue-500 hover:underline">Lupa Password / Login Tanpa Password?</a>',
+                html: `
+                    <div class="flex flex-col gap-3 mt-4">
+                        <button onclick="handleGoogleLogin()" class="bg-white text-gray-700 border border-gray-300 font-bold py-3 px-4 rounded-xl hover:bg-gray-50 flex items-center justify-center gap-3 transition">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5">
+                            Masuk dengan Google
+                        </button>
+                        <button onclick="handleEmailLogin()" class="bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 flex items-center justify-center gap-3 transition">
+                            📧 Masuk dengan Email & Password
+                        </button>
+                        <button onclick="handleMagicLink()" class="bg-teal-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-teal-700 flex items-center justify-center gap-3 transition">
+                            ✨ Login Tanpa Password (Link)
+                        </button>
+                        <div class="relative flex py-2 items-center">
+                            <div class="flex-grow border-t border-gray-300"></div>
+                            <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">Belum punya akun?</span>
+                            <div class="flex-grow border-t border-gray-300"></div>
+                        </div>
+                        <button onclick="handleRegister()" class="bg-slate-800 text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-900 transition border border-slate-600">
+                            📝 Daftar Akun Baru
+                        </button>
+                    </div>
+                `
+            });
+        }
+
+        // --- A. Login Google ---
+        function handleGoogleLogin() {
+            Swal.close(); // Tutup menu
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(err => Swal.fire("Gagal", err.message, "error"));
+        }
+
+        // --- B. Login Email & Password ---
+        async function handleEmailLogin() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Masuk Akun',
+                html: `
+                    <input id="login-email" class="swal2-input" placeholder="Email Address">
+                    <input id="login-pass" class="swal2-input" type="password" placeholder="Password">
+                `,
+                confirmButtonText: 'Masuk',
+                showCancelButton: true,
+                focusConfirm: false,
                 preConfirm: () => {
-                    return {
-                        email: document.getElementById('swal-email').value,
-                        password: document.getElementById('swal-password').value
-                    };
+                    return [
+                        document.getElementById('login-email').value,
+                        document.getElementById('login-pass').value
+                    ]
                 }
             });
 
-            if (result.isConfirmed) {
-                // --- LOGIKA LOGIN (MASUK) ---
-                const { email, password } = result.value;
-                if (!email || !password) return Swal.fire("Error", "Email & Password harus diisi", "warning");
+            if (formValues) {
+                const [email, pass] = formValues;
+                if(!email || !pass) return Swal.fire("Error", "Isi semua kolom!", "warning");
                 
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(() => Swal.fire({icon: 'success', title: 'Berhasil Masuk!', timer: 1500, showConfirmButton: false}))
-                    .catch(err => Swal.fire("Gagal Masuk", translateError(err.code), "error"));
-
-            } else if (result.isDenied) {
-                // --- LOGIKA DAFTAR BARU ---
-                const { email, password } = result.value;
-                if (!email || !password) return Swal.fire("Error", "Email & Password harus diisi", "warning");
-
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then(() => Swal.fire("Selamat Datang!", "Akun berhasil dibuat.", "success"))
-                    .catch(err => Swal.fire("Gagal Daftar", translateError(err.code), "error"));
+                auth.signInWithEmailAndPassword(email, pass)
+                    .then(() => Swal.fire({ icon: 'success', title: 'Berhasil Masuk!', timer: 1500, showConfirmButton: false }))
+                    .catch(err => showErrorMessage(err));
             }
         }
 
-        // 3. Logika Login Tanpa Password (Magic Link)
-        async function sendMagicLink() {
-            Swal.close(); // Tutup modal login dulu
-            
+        // --- C. Daftar Akun Baru ---
+        async function handleRegister() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Daftar Akun Baru',
+                html: `
+                    <input id="reg-email" class="swal2-input" placeholder="Email Address">
+                    <input id="reg-pass" class="swal2-input" type="password" placeholder="Password (Min. 6 Karakter)">
+                `,
+                confirmButtonText: 'Daftar Sekarang',
+                confirmButtonColor: '#10b981', // Hijau
+                showCancelButton: true,
+                preConfirm: () => {
+                    return [
+                        document.getElementById('reg-email').value,
+                        document.getElementById('reg-pass').value
+                    ]
+                }
+            });
+
+            if (formValues) {
+                const [email, pass] = formValues;
+                if(!email || !pass) return Swal.fire("Error", "Isi semua kolom!", "warning");
+
+                auth.createUserWithEmailAndPassword(email, pass)
+                    .then(() => Swal.fire("Sukses!", "Akun berhasil dibuat. Anda sudah login.", "success"))
+                    .catch(err => showErrorMessage(err));
+            }
+        }
+
+        // --- D. Magic Link (Login Tanpa Password) ---
+        async function handleMagicLink() {
             const { value: email } = await Swal.fire({
                 title: 'Login Tanpa Password',
                 input: 'email',
-                inputLabel: 'Masukkan email Anda, kami akan kirimkan link login.',
+                inputLabel: 'Masukkan email, kami kirim link login ajaib.',
                 inputPlaceholder: 'nama@email.com',
+                confirmButtonText: 'Kirim Link',
                 showCancelButton: true
             });
 
             if (email) {
-                const actionCodeSettings = {
-                    url: window.location.href, // Link akan kembali ke halaman ini
+                const settings = {
+                    url: window.location.href, // Kembali ke halaman ini
                     handleCodeInApp: true
                 };
 
-                auth.sendSignInLinkToEmail(email, actionCodeSettings)
+                auth.sendSignInLinkToEmail(email, settings)
                     .then(() => {
-                        window.localStorage.setItem('emailForSignIn', email); // Simpan email sementara
-                        Swal.fire('Link Terkirim!', 'Cek inbox email Anda (termasuk Spam). Klik link di sana untuk masuk.', 'success');
+                        window.localStorage.setItem('emailForSignIn', email);
+                        Swal.fire('Terkirim!', 'Cek email Anda (termasuk folder Spam). Klik link di sana untuk masuk.', 'success');
                     })
-                    .catch((error) => {
-                        Swal.fire('Error', error.message, 'error');
-                    });
+                    .catch(err => showErrorMessage(err));
             }
         }
 
-        // 4. Cek Apakah User Baru Saja Klik Link dari Email?
-        if (auth.isSignInWithEmailLink(window.location.href)) {
-            let email = window.localStorage.getItem('emailForSignIn');
-            if (!email) {
-                // Jika email tidak tersimpan (misal ganti browser), tanya lagi
-                email = window.prompt('Masukkan email Anda untuk konfirmasi:');
-            }
-            
-            if (email) {
-                auth.signInWithEmailLink(email, window.location.href)
-                    .then((result) => {
-                        window.localStorage.removeItem('emailForSignIn');
-                        // Hapus parameter URL agar bersih
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        Swal.fire('Sukses', 'Anda berhasil login via email!', 'success');
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        Swal.fire('Gagal', 'Link tidak valid atau kadaluarsa.', 'error');
-                    });
-            }
+        // Helper: Pesan Error Bahasa Indonesia
+        function showErrorMessage(error) {
+            let msg = error.message;
+            if(error.code === 'auth/wrong-password') msg = "Password salah.";
+            if(error.code === 'auth/user-not-found') msg = "Akun tidak ditemukan. Silakan daftar dulu.";
+            if(error.code === 'auth/email-already-in-use') msg = "Email ini sudah terdaftar.";
+            if(error.code === 'auth/weak-password') msg = "Password terlalu pendek (Min 6 karakter).";
+            if(error.code === 'auth/invalid-email') msg = "Format email tidak valid.";
+            Swal.fire("Gagal", msg, "error");
         }
 
-        function translateError(code) {
-            if (code === 'auth/user-not-found') return "Akun tidak ditemukan. Silakan daftar dulu.";
-            if (code === 'auth/wrong-password') return "Password salah.";
-            if (code === 'auth/email-already-in-use') return "Email sudah terdaftar.";
-            if (code === 'auth/weak-password') return "Password terlalu lemah (min. 6 karakter).";
-            if (code === 'auth/invalid-email') return "Format email tidak valid.";
-            return "Terjadi kesalahan: " + code;
-        }
+        // Listener Status Auth
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User Login
+                document.getElementById('btn-login').classList.add('hidden');
+                document.getElementById('user-info').classList.remove('hidden');
+                
+                const name = user.displayName || user.email.split('@')[0];
+                document.getElementById('user-name').innerText = name;
+                document.getElementById('user-photo').src = user.photoURL || `https://ui-avatars.com/api/?name=${name}&background=random&color=fff`;
+                
+                // Cek Login Link
+                if (auth.isSignInWithEmailLink(window.location.href)) {
+                    let email = window.localStorage.getItem('emailForSignIn');
+                    if (!email) email = window.prompt('Konfirmasi email Anda:');
+                    auth.signInWithEmailLink(email, window.location.href)
+                        .then(() => {
+                            window.localStorage.removeItem('emailForSignIn');
+                            window.history.replaceState({}, document.title, window.location.pathname); // Bersihkan URL
+                        });
+                }
+
+                loadHistoryRealtime(user.uid);
+            } else {
+                // User Logout
+                document.getElementById('btn-login').classList.remove('hidden');
+                document.getElementById('user-info').classList.add('hidden');
+                document.getElementById('history-container').innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-40 text-slate-500">
+                        <p class="text-sm">Silakan login untuk<br>melihat riwayat.</p>
+                    </div>`;
+            }
+        });
 
         function logout() {
-            auth.signOut().then(() => {
-                exitAdmin();
-                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-                Toast.fire({ icon: 'info', title: 'Anda telah keluar.' });
+            auth.signOut();
+            exitAdmin();
+        }
+
+        // ==========================================
+        // 3. DATABASE & GAME LOGIC
+        // ==========================================
+        
+        let currentUserUid = null;
+        let isAdmin = false;
+        let selectedItems = new Set(); 
+
+        function loadHistoryRealtime(uid) {
+            currentUserUid = uid;
+            const historyRef = db.ref('history/' + uid);
+            
+            historyRef.on('value', (snapshot) => {
+                const container = document.getElementById('history-container');
+                const dataRaw = snapshot.val();
+
+                if (!dataRaw) {
+                    container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Belum ada data.</p>';
+                    return;
+                }
+
+                const dataArray = Object.keys(dataRaw).map(key => ({
+                    id: key, ...dataRaw[key]
+                })).sort((a, b) => b.createdAt - a.createdAt);
+
+                container.innerHTML = '';
+                
+                dataArray.forEach(data => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "bg-slate-700/40 p-3 rounded-xl border border-slate-600/50 flex items-center gap-3 group hover:bg-slate-700/60 transition-all";
+                    
+                    const checkbox = `<input type="checkbox" class="admin-check w-5 h-5 accent-red-500 rounded cursor-pointer ${isAdmin ? 'block' : 'hidden'}" onchange="toggleSelect('${data.id}')">`;
+                    
+                    const content = `
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-sm text-teal-300 line-clamp-1">${data.game}</h4>
+                            <p class="text-[10px] text-slate-400">${data.dateStr}</p>
+                        </div>
+                        <div class="text-right bg-slate-800 px-2 py-1 rounded-lg border border-slate-700">
+                            <span class="block text-lg font-bold text-yellow-400 leading-none">${data.score}</span>
+                        </div>
+                    `;
+                    itemDiv.innerHTML = checkbox + content;
+                    container.appendChild(itemDiv);
+                });
+            });
+        }
+
+        function saveToFirebase(game, score) {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            db.ref('history/' + user.uid).push({
+                game: game,
+                score: parseInt(score),
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                dateStr: new Date().toLocaleDateString('id-ID')
             });
         }
 
         // ==========================================
-        // KONFIGURASI GAME & FOLDER
+        // 4. ADMIN & GAME SYSTEM
         // ==========================================
         const GITHUB_USERNAME = 'tanzilhuda1215-source'; 
         const REPO_NAME = 'SisLearn';                    
-        const FOLDER_NAME = 'games';                     
-
+        const FOLDER_NAME = 'games';
         const CUSTOM_ICONS = {
             "space.html": "🚀", "glass.html": "💎", "Pronouncation-Games.html": "🗣️",
             "kuis tanda koma.html": "📝", "Quiz kata sifat kata benda.html": "grammar"
         };
 
+        // ... (Kode loadContent, openGame, dll tetap sama) ...
+        // Agar tidak terlalu panjang, saya persingkat bagian yang tidak berubah.
+        // Logika Admin:
+        
+        async function adminMode() {
+            if (!auth.currentUser) return Swal.fire("Akses Ditolak", "Login dulu bos!", "warning");
+            if (isAdmin) { exitAdmin(); return; }
+
+            const { value: password } = await Swal.fire({
+                title: 'Password Admin',
+                input: 'password',
+                inputPlaceholder: 'Ketik: admin',
+                showCancelButton: true
+            });
+
+            if (password === "admin") {
+                isAdmin = true;
+                selectedItems.clear();
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('btn-admin').classList.add('bg-red-600', 'text-white', 'border-red-500');
+                document.getElementById('btn-admin').innerText = "Tutup Admin";
+                document.querySelectorAll('.admin-check').forEach(el => el.classList.remove('hidden'));
+                Swal.fire({icon: 'success', title: 'Mode Admin Aktif', timer: 1500, showConfirmButton: false});
+            } else if (password) {
+                Swal.fire("Salah Password!", "", "error");
+            }
+        }
+
+        function exitAdmin() {
+            isAdmin = false;
+            selectedItems.clear();
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('btn-admin').classList.remove('bg-red-600', 'text-white', 'border-red-500');
+            document.getElementById('btn-admin').innerText = "⚙️ Kelola";
+            document.querySelectorAll('.admin-check').forEach(el => {
+                el.classList.add('hidden');
+                el.checked = false;
+            });
+        }
+
+        window.toggleSelect = function(id) {
+            if (selectedItems.has(id)) selectedItems.delete(id);
+            else selectedItems.add(id);
+        }
+
+        async function deleteSelected() {
+            if (selectedItems.size === 0) return Swal.fire("Pilih dulu data yang mau dihapus.", "", "info");
+            
+            const result = await Swal.fire({
+                title: `Hapus ${selectedItems.size} Data?`,
+                icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!'
+            });
+
+            if (result.isConfirmed) {
+                const updates = {};
+                selectedItems.forEach(id => updates[`history/${auth.currentUser.uid}/${id}`] = null);
+                await db.ref().update(updates);
+                Swal.fire("Terhapus!", "", "success");
+                selectedItems.clear();
+            }
+        }
+
+        async function deleteAll() {
+            const result = await Swal.fire({
+                title: 'HAPUS SEMUA?',
+                text: "Semua riwayat skor Anda akan hilang permanen!",
+                icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hancurkan!'
+            });
+
+            if (result.isConfirmed) {
+                await db.ref(`history/${auth.currentUser.uid}`).remove();
+                Swal.fire("Bersih!", "", "success");
+            }
+        }
+
+        // --- FUNGSI LOAD CONTENT & SPY (Sama) ---
         let spyInterval = null;
         let currentGameTitle = "";
 
@@ -373,142 +545,6 @@
                     }
                 } catch (e) {}
             }, 1000);
-        }
-
-        // --- DATABASE LOGIC ---
-        function saveToFirebase(game, score) {
-            if (!currentUser) return;
-            const newHistoryRef = db.ref('history/' + currentUser.uid).push();
-            newHistoryRef.set({
-                game: game,
-                score: parseInt(score),
-                createdAt: firebase.database.ServerValue.TIMESTAMP,
-                dateStr: new Date().toLocaleDateString('id-ID')
-            });
-        }
-
-        function loadHistoryRealtime() {
-            if (!currentUser) return;
-            const historyRef = db.ref('history/' + currentUser.uid);
-            
-            historyRef.on('value', (snapshot) => {
-                const container = document.getElementById('history-container');
-                const dataRaw = snapshot.val();
-
-                if (!dataRaw) {
-                    container.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Belum ada data.</p>';
-                    return;
-                }
-
-                const dataArray = Object.keys(dataRaw).map(key => ({
-                    id: key,
-                    ...dataRaw[key]
-                })).sort((a, b) => b.createdAt - a.createdAt);
-
-                container.innerHTML = '';
-                
-                dataArray.forEach(data => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = "bg-slate-700/40 p-3 rounded-xl border border-slate-600/50 flex items-center gap-3 group transition-all";
-                    
-                    const checkbox = `<input type="checkbox" class="admin-check w-5 h-5 accent-red-500 ${isAdmin ? 'block' : 'hidden'}" onchange="toggleSelect('${data.id}')">`;
-                    
-                    const content = `
-                        <div class="flex-grow">
-                            <h4 class="font-bold text-sm text-teal-300 line-clamp-1">${data.game}</h4>
-                            <p class="text-[10px] text-slate-400">${data.dateStr}</p>
-                        </div>
-                        <div class="text-right bg-slate-800 px-2 py-1 rounded-lg">
-                            <span class="block text-lg font-bold text-yellow-400 leading-none">${data.score}</span>
-                        </div>
-                    `;
-
-                    itemDiv.innerHTML = checkbox + content;
-                    container.appendChild(itemDiv);
-                });
-            });
-        }
-
-        // --- MODE ADMIN ---
-        async function adminMode() {
-            if (!currentUser) return Swal.fire("Akses Ditolak", "Login dulu bos!", "warning");
-            if (isAdmin) { exitAdmin(); return; }
-
-            const { value: password } = await Swal.fire({
-                title: 'Masukkan Password Admin',
-                input: 'password',
-                inputPlaceholder: 'Password...',
-                showCancelButton: true
-            });
-
-            if (password === "admin") {
-                isAdmin = true;
-                selectedItems.clear();
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('btn-admin').classList.add('bg-red-600', 'text-white');
-                document.getElementById('btn-admin').innerText = "Tutup Admin";
-                document.querySelectorAll('.admin-check').forEach(el => el.classList.remove('hidden'));
-                Swal.fire("Mode Administrator Aktif", "Silakan pilih data yang ingin dihapus.", "success");
-            } else if (password) {
-                Swal.fire("Salah Password!", "Anda bukan admin.", "error");
-            }
-        }
-
-        function exitAdmin() {
-            isAdmin = false;
-            selectedItems.clear();
-            document.getElementById('admin-panel').classList.add('hidden');
-            document.getElementById('btn-admin').classList.remove('bg-red-600', 'text-white');
-            document.getElementById('btn-admin').innerText = "⚙️ Kelola";
-            document.querySelectorAll('.admin-check').forEach(el => {
-                el.classList.add('hidden');
-                el.checked = false;
-            });
-        }
-
-        window.toggleSelect = function(id) {
-            if (selectedItems.has(id)) selectedItems.delete(id);
-            else selectedItems.add(id);
-        }
-
-        async function deleteSelected() {
-            if (selectedItems.size === 0) return Swal.fire("Pilih dulu", "Centang data yang mau dihapus.", "info");
-
-            const result = await Swal.fire({
-                title: `Hapus ${selectedItems.size} Data?`,
-                text: "Data tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, Hapus!'
-            });
-
-            if (result.isConfirmed) {
-                const updates = {};
-                selectedItems.forEach(id => {
-                    updates[`history/${currentUser.uid}/${id}`] = null;
-                });
-                
-                await db.ref().update(updates);
-                Swal.fire("Terhapus!", "Data terpilih sudah hilang.", "success");
-                selectedItems.clear();
-            }
-        }
-
-        async function deleteAll() {
-            const result = await Swal.fire({
-                title: 'HAPUS SEMUA RIWAYAT?',
-                text: "Aksi ini akan menghapus bersih seluruh skor Anda!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, Hancurkan!'
-            });
-
-            if (result.isConfirmed) {
-                await db.ref(`history/${currentUser.uid}`).remove();
-                Swal.fire("Bersih!", "Semua riwayat telah dihapus.", "success");
-            }
         }
 
         loadContent();
