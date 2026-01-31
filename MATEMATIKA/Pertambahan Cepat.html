@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Pertambahan Cepat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .shake { animation: shake 0.2s ease-in-out 0s 2; }
+        .timer-bar { transition: width 0.1s linear; }
+        .hidden { display: none; }
+        body { background-color: #fdf2f8; } 
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div id="game-container" class="w-full max-w-md overflow-hidden rounded-[2rem] shadow-2xl bg-white border-4 border-white">
+        
+        <div class="bg-[#1e293b] p-6 flex justify-between items-center text-white">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">⚡</span>
+                <h1 class="font-black text-lg leading-tight uppercase tracking-widest">Kuis Pertambahan<br>Cepat</h1>
+            </div>
+            <button onclick="location.reload()" class="bg-[#ef4444] hover:bg-red-600 px-4 py-2 rounded-xl font-bold text-sm">RESET ✕</button>
+        </div>
+
+        <div id="start-screen" class="p-8">
+            <div class="text-center mb-6">
+                <h2 class="text-3xl font-black text-[#e91e63] mb-1">Pengaturan</h2>
+                <p class="text-slate-400 text-sm font-medium">Tentukan rentang angka dan waktu.</p>
+            </div>
+
+            <div class="space-y-4 mb-8">
+                <div class="grid grid-cols-2 gap-3 bg-pink-50 p-4 rounded-2xl border border-pink-100">
+                    <div class="col-span-2 text-center text-[10px] font-black text-pink-400 uppercase tracking-widest mb-1">Rentang Angka A</div>
+                    <input type="number" id="min-a" value="3" class="w-full rounded-xl p-2 text-center font-bold outline-none border-2 border-transparent focus:border-pink-300" placeholder="Min">
+                    <input type="number" id="max-a" value="9" class="w-full rounded-xl p-2 text-center font-bold outline-none border-2 border-transparent focus:border-pink-300" placeholder="Max">
+                </div>
+                <div class="grid grid-cols-2 gap-3 bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                    <div class="col-span-2 text-center text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Rentang Angka B</div>
+                    <input type="number" id="min-b" value="1" class="w-full rounded-xl p-2 text-center font-bold outline-none border-2 border-transparent focus:border-indigo-300" placeholder="Min">
+                    <input type="number" id="max-b" value="5" class="w-full rounded-xl p-2 text-center font-bold border-2 border-transparent focus:border-indigo-300" placeholder="Max">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="timer-val" value="5" class="w-full border-2 border-slate-100 rounded-xl p-3 text-center font-bold" title="Detik">
+                    <input type="number" id="total-q" value="10" class="w-full border-2 border-slate-100 rounded-xl p-3 text-center font-bold" title="Jumlah Soal">
+                </div>
+            </div>
+
+            <button id="start-btn" class="w-full bg-[#e91e63] text-white text-xl font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-all">MULAI KUIS 🚀</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden p-8">
+            <div class="flex justify-between items-center mb-6">
+                <span class="bg-slate-100 px-4 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase">Soal <span id="cur-idx">1</span> / <span id="max-idx">10</span></span>
+                <span class="text-pink-500 font-black">Skor: <span id="live-score">0</span></span>
+            </div>
+
+            <div class="w-full bg-slate-100 h-4 rounded-full mb-2 overflow-hidden border-2 border-white">
+                <div id="timer-bar" class="timer-bar h-full bg-green-400 w-full"></div>
+            </div>
+            <div id="timer-text" class="text-center font-mono font-black text-2xl mb-8 text-slate-300">0.0s</div>
+
+            <div class="text-center mb-10">
+                <div id="equation" class="text-7xl font-black text-slate-800 tracking-tighter">0 + 0</div>
+                <div id="feedback" class="h-8 mt-4 font-black text-2xl uppercase"></div>
+            </div>
+
+            <div id="options-grid" class="grid grid-cols-2 gap-4"></div>
+        </div>
+
+        <div id="result-screen" class="hidden p-8 text-center">
+            <div class="text-7xl mb-4">🏆</div>
+            <h2 class="text-4xl font-black text-slate-800 mb-2">Selesai!</h2>
+            <p class="text-slate-400 font-bold mb-8 uppercase tracking-widest text-sm">Skor Akhir Anda:</p>
+            
+            <div class="bg-pink-50 rounded-[2.5rem] p-10 mb-8 border-2 border-pink-100">
+                <div id="final-score" class="text-9xl font-black text-[#e91e63] leading-none">0</div>
+                <div class="text-pink-300 font-black mt-4 text-xl tracking-widest uppercase">Poin</div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-slate-800 text-white font-black py-5 rounded-2xl text-xl hover:bg-black transition-all">COBA LAGI</button>
+        </div>
+    </div>
+
+    <script>
+        let cfg = { minA:3, maxA:9, minB:1, maxB:5, time:5, total:10 };
+        let game = { cur:1, score:0, time:0, inv:null, can:true, ans:0 };
+
+        const startBtn = document.getElementById('start-btn');
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+
+        startBtn.addEventListener('click', () => {
+            cfg.minA = parseInt(document.getElementById('min-a').value) || 1;
+            cfg.maxA = parseInt(document.getElementById('max-a').value) || 10;
+            cfg.minB = parseInt(document.getElementById('min-b').value) || 1;
+            cfg.maxB = parseInt(document.getElementById('max-b').value) || 10;
+            cfg.time = parseInt(document.getElementById('timer-val').value) || 5;
+            cfg.total = parseInt(document.getElementById('total-q').value) || 10;
+
+            if(cfg.minA > cfg.maxA || cfg.minB > cfg.maxB) {
+                alert("Nilai MIN tidak boleh lebih besar dari MAX!");
+                return;
+            }
+
+            document.getElementById('max-idx').textContent = cfg.total;
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadNext();
+        });
+
+        function loadNext() {
+            if (game.cur > cfg.total) return finish();
+            game.can = true;
+            document.getElementById('feedback').textContent = "";
+            document.getElementById('cur-idx').textContent = game.cur;
+            
+            const a = Math.floor(Math.random() * (cfg.maxA - cfg.minA + 1)) + cfg.minA;
+            const b = Math.floor(Math.random() * (cfg.maxB - cfg.minB + 1)) + cfg.minB;
+            game.ans = a + b;
+            document.getElementById('equation').textContent = `${a} + ${b}`;
+            
+            let opts = new Set([game.ans]);
+            while(opts.size < 4) opts.add(game.ans + (Math.floor(Math.random() * 7) - 3));
+            
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            Array.from(opts).sort(() => Math.random() - 0.5).forEach(val => {
+                const btn = document.createElement('button');
+                btn.textContent = val;
+                btn.className = "bg-white border-b-4 border-slate-200 py-5 rounded-2xl text-3xl font-black text-slate-700 hover:border-pink-400 active:translate-y-1 active:border-b-0 transition-all";
+                btn.onclick = () => checkAns(val, btn);
+                grid.appendChild(btn);
+            });
+            runTimer();
+        }
+
+        function runTimer() {
+            clearInterval(game.inv);
+            game.time = cfg.time;
+            game.inv = setInterval(() => {
+                game.time -= 0.1;
+                document.getElementById('timer-bar').style.width = `${(game.time / cfg.time) * 100}%`;
+                document.getElementById('timer-text').textContent = `${Math.max(0, game.time).toFixed(1)}s`;
+                if (game.time <= 0) { clearInterval(game.inv); checkAns(null); }
+            }, 100);
+        }
+
+        function checkAns(val, btn) {
+            if (!game.can) return;
+            game.can = false;
+            clearInterval(game.inv);
+            const fb = document.getElementById('feedback');
+
+            if (val === game.ans) {
+                game.score++;
+                document.getElementById('live-score').textContent = game.score;
+                fb.textContent = "BENAR! 🌟";
+                fb.className = "h-8 mt-4 font-black text-2xl text-green-500 uppercase";
+                if(btn) btn.classList.add('bg-green-500', 'text-white', 'border-green-600');
+            } else {
+                document.getElementById('game-container').classList.add('shake');
+                setTimeout(() => document.getElementById('game-container').classList.remove('shake'), 400);
+                fb.textContent = val === null ? "WAKTU HABIS!" : "SALAH! ❌";
+                fb.className = "h-8 mt-4 font-black text-2xl text-red-500 uppercase";
+                if(btn) btn.classList.add('bg-red-500', 'text-white', 'border-red-600');
+            }
+
+            setTimeout(() => { game.cur++; loadNext(); }, 1200);
+        }
+
+        function finish() {
+            quizScreen.classList.add('hidden');
+            const finalScoreVal = Math.round((game.score / cfg.total) * 100);
+            document.getElementById('final-score').textContent = finalScoreVal;
+            resultScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
