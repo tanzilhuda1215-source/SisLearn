@@ -7,361 +7,192 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
-        
-        body {
-            font-family: 'Fredoka', sans-serif;
-            background: #ffe4e6; /* Rose background */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .card {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(225, 29, 72, 0.15);
-            width: 100%;
-            max-width: 480px;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .input-setting {
-            border: 2px solid #fecdd3;
-            border-radius: 12px;
-            padding: 8px 12px;
-            width: 100%;
-            font-weight: bold;
-            color: #be123c;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .input-setting:focus {
-            border-color: #f43f5e;
-        }
-
-        .option-btn {
-            background: #fff1f2;
-            border: 2px solid #fda4af;
-            color: #9f1239;
-            font-size: 1.5rem;
-            font-weight: bold;
-            padding: 1rem;
-            border-radius: 16px;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .option-btn:hover:not(:disabled) {
-            transform: translateY(-4px);
-            background: #f43f5e;
-            color: white;
-            border-color: #f43f5e;
-            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
-        }
-
-        .option-btn.correct {
-            background: #10b981 !important;
-            border-color: #059669 !important;
-            color: white !important;
-        }
-
-        .option-btn.wrong {
-            background: #ef4444 !important;
-            border-color: #b91c1c !important;
-            color: white !important;
-            opacity: 0.6;
-        }
-
-        .timer-bar {
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-        .timer-fill {
-            height: 100%;
-            background: #f43f5e;
-            width: 100%;
-            transition: width 1s linear;
-        }
-
+        body { font-family: 'Fredoka', sans-serif; background: #fff1f2; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; border-radius: 2rem; box-shadow: 0 20px 50px rgba(225, 29, 72, 0.1); width: 100%; max-width: 420px; padding: 2rem; position: relative; }
+        .input-box { border: 2px solid #ffe4e6; border-radius: 1rem; padding: 0.5rem; width: 100%; font-weight: bold; color: #be123c; text-align: center; outline: none; transition: all 0.2s; }
+        .input-box:focus { border-color: #fb7185; background: #fff1f2; }
+        .option-btn { background: #fff1f2; border: 2px solid #fecdd3; color: #9f1239; font-size: 1.5rem; font-weight: 800; padding: 1.2rem; border-radius: 1.25rem; cursor: pointer; transition: 0.2s; }
+        .option-btn:hover:not(:disabled) { transform: translateY(-4px); background: #f43f5e; color: white; border-color: #f43f5e; box-shadow: 0 8px 15px rgba(244, 63, 94, 0.2); }
+        .option-btn.correct { background: #10b981 !important; border-color: #059669 !important; color: white !important; }
+        .option-btn.wrong { background: #ef4444 !important; border-color: #b91c1c !important; color: white !important; }
+        .timer-bar { height: 10px; background: #f3f4f6; border-radius: 5px; margin-bottom: 2rem; overflow: hidden; border: 2px solid white; }
+        .timer-fill { height: 100%; background: linear-gradient(to right, #fb7185, #f43f5e); width: 100%; transition: width 1s linear; }
         .hidden { display: none; }
-        
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <!-- 1. PENGATURAN AWAL (SETUP SCREEN) -->
-    <div id="setup-screen" class="card fade-in text-center">
-        <div class="mb-6">
-            <span class="text-6xl">➖</span>
-        </div>
-        <h1 class="text-3xl font-bold text-rose-600 mb-2">Pengurangan Cepat</h1>
-        <p class="text-rose-400 mb-8 text-sm">Atur tantanganmu sebelum mulai!</p>
+    <div id="setup-screen" class="card text-center shadow-2xl">
+        <div class="mb-4 text-5xl">⚡</div>
+        <h1 class="text-2xl font-black text-rose-600 mb-2 uppercase tracking-tighter">Pengurangan Cepat</h1>
+        <p class="text-slate-400 text-sm mb-6">Atur rentang angka tantanganmu!</p>
 
-        <div class="grid grid-cols-2 gap-4 text-left mb-6">
-            <div>
-                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Angka A (Max)</label>
-                <input type="number" id="input-max-a" class="input-setting" value="9" min="5">
+        <div class="space-y-4 mb-8">
+            <div class="bg-rose-50 p-4 rounded-2xl border border-rose-100">
+                <span class="block text-[10px] font-black text-rose-400 mb-2 uppercase tracking-widest">Rentang Angka A (Depan)</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="min-a" value="5" class="input-box" placeholder="Min">
+                    <input type="number" id="max-a" value="15" class="input-box" placeholder="Max">
+                </div>
             </div>
-            <div>
-                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Angka B (Max)</label>
-                <input type="number" id="input-max-b" class="input-setting" value="4" min="1">
+            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                <span class="block text-[10px] font-black text-blue-400 mb-2 uppercase tracking-widest">Rentang Angka B (Belakang)</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="min-b" value="1" class="input-box" placeholder="Min">
+                    <input type="number" id="max-b" value="5" class="input-box" placeholder="Max">
+                </div>
             </div>
-            <div>
-                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Waktu (Detik)</label>
-                <input type="number" id="input-timer" class="input-setting" value="5" min="3">
-            </div>
-            <div>
-                <label class="text-xs font-bold text-rose-500 uppercase ml-1">Jml Soal</label>
-                <input type="number" id="input-total" class="input-setting" value="15" min="5">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <span class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Waktu (Detik)</span>
+                    <input type="number" id="timer-val" value="5" class="input-box">
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Jml Soal</span>
+                    <input type="number" id="total-q" value="10" class="input-box">
+                </div>
             </div>
         </div>
 
-        <button onclick="startGame()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg">
-            MULAI TANTANGAN 🚀
+        <button onclick="startGame()" class="w-full bg-rose-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-rose-200 active:scale-95 transition-all text-lg">
+            MULAI SEKARANG 🚀
         </button>
     </div>
 
-    <!-- 2. LAYAR PERMAINAN (GAME SCREEN) -->
     <div id="game-screen" class="card hidden text-center">
         <div class="flex justify-between items-center mb-4">
-            <span class="bg-rose-100 text-rose-600 px-3 py-1 rounded-lg text-sm font-bold" id="q-counter">1 / 15</span>
-            <div class="flex items-center gap-1">
-                <span class="text-lg">⭐</span>
-                <span class="text-xl font-bold text-yellow-500" id="current-score">0</span>
-            </div>
+            <span class="bg-slate-100 text-slate-500 px-4 py-1 rounded-full text-[10px] font-black uppercase">Soal <span id="cur-idx">1</span> / <span id="max-idx">10</span></span>
+            <span class="text-rose-500 font-black">Skor: <span id="live-score">0</span></span>
         </div>
-
-        <div class="timer-bar">
-            <div id="timer-fill" class="timer-fill"></div>
+        <div class="timer-bar"><div id="timer-fill" class="timer-fill"></div></div>
+        <div class="py-10">
+            <div id="equation" class="text-7xl font-black text-slate-800 tracking-tighter">0 - 0</div>
+            <div id="feedback" class="h-8 mt-4 font-black text-2xl uppercase tracking-widest"></div>
         </div>
-
-        <div class="py-8">
-            <div class="text-6xl font-bold text-slate-700 mb-2 flex justify-center items-center gap-4">
-                <span id="num-a" class="text-rose-600">?</span>
-                <span class="text-slate-400">-</span>
-                <span id="num-b" class="text-blue-500">?</span>
-            </div>
-            <div class="text-2xl text-slate-400 font-bold">= ?</div>
-        </div>
-
-        <div id="options-grid" class="grid grid-cols-2 gap-4 mt-4">
-            <!-- Tombol jawaban akan muncul di sini -->
-        </div>
-        
-        <p id="feedback-text" class="h-6 mt-4 text-sm font-bold text-rose-500"></p>
+        <div id="options-grid" class="grid grid-cols-2 gap-4"></div>
     </div>
 
-    <!-- 3. LAYAR HASIL (WAJIB ADA ID 'result-screen') -->
-    <div id="result-screen" class="card hidden text-center">
-        <div class="mb-6">
-            <div class="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center mx-auto text-5xl">
-                🏆
-            </div>
+    <div id="result-screen" class="hidden card text-center">
+        <div class="text-6xl mb-4">🏆</div>
+        <h2 class="text-3xl font-black text-slate-800 mb-2">Selesai!</h2>
+        <p class="text-slate-400 font-bold mb-8 uppercase tracking-widest text-xs">Skor Akhir Anda</p>
+        <div class="bg-rose-50 rounded-[2.5rem] p-10 mb-8 border-2 border-rose-100">
+            <div id="final-score" class="text-9xl font-black text-rose-600 leading-none">0</div>
+            <div class="text-rose-300 font-black mt-4 text-xl tracking-widest uppercase">Poin</div>
         </div>
-        
-        <h2 class="text-3xl font-bold text-slate-800 mb-2">Selesai!</h2>
-        <p class="text-slate-500 mb-8">Nilai akhir kamu adalah:</p>
-
-        <!-- ID 'final-score' WAJIB ADA UNTUK SISTEM RIWAYAT -->
-        <div class="text-7xl font-black text-rose-600 mb-8 tracking-tighter">
-            <span id="final-score">0</span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 text-sm text-slate-600 mb-8 bg-rose-50 p-4 rounded-xl">
-            <div>
-                <span class="block font-bold text-lg text-green-600" id="stat-correct">0</span>
-                Benar
-            </div>
-            <div>
-                <span class="block font-bold text-lg text-slate-800" id="stat-total">0</span>
-                Total Soal
-            </div>
-        </div>
-
-        <button onclick="location.reload()" class="w-full border-2 border-rose-200 text-rose-600 font-bold py-3 rounded-xl hover:bg-rose-50 transition-colors">
-            Main Lagi ↺
-        </button>
+        <button onclick="location.reload()" class="w-full bg-slate-800 text-white font-black py-5 rounded-2xl text-xl hover:bg-black transition-all">MAIN LAGI ↺</button>
     </div>
 
     <script>
-        // Variabel Global
-        let maxA = 9;
-        let maxB = 4;
-        let timePerQuestion = 5;
-        let totalQuestions = 15;
-        
-        let currentQ = 0;
-        let score = 0;
-        let correctCount = 0;
-        let timerInterval;
-        let timeLeft;
-        let canAnswer = false;
-
-        // Element
-        const setupScreen = document.getElementById('setup-screen');
-        const gameScreen = document.getElementById('game-screen');
-        const resultScreen = document.getElementById('result-screen');
-        
-        const numAEl = document.getElementById('num-a');
-        const numBEl = document.getElementById('num-b');
-        const optionsGrid = document.getElementById('options-grid');
-        const timerFill = document.getElementById('timer-fill');
-        const feedbackText = document.getElementById('feedback-text');
+        let cfg = { minA:5, maxA:15, minB:1, maxB:5, time:5, total:10 };
+        let game = { cur:1, score:0, time:0, inv:null, can:true, ans:0 };
 
         function startGame() {
-            // Ambil nilai dari input user
-            maxA = parseInt(document.getElementById('input-max-a').value) || 9;
-            maxB = parseInt(document.getElementById('input-max-b').value) || 4;
-            timePerQuestion = parseInt(document.getElementById('input-timer').value) || 5;
-            totalQuestions = parseInt(document.getElementById('input-total').value) || 15;
+            cfg.minA = parseInt(document.getElementById('min-a').value) || 1;
+            cfg.maxA = parseInt(document.getElementById('max-a').value) || 10;
+            cfg.minB = parseInt(document.getElementById('min-b').value) || 1;
+            cfg.maxB = parseInt(document.getElementById('max-b').value) || 10;
+            cfg.time = parseInt(document.getElementById('timer-val').value) || 5;
+            cfg.total = parseInt(document.getElementById('total-q').value) || 10;
 
-            // Validasi sederhana agar soal masuk akal
-            if (maxA < maxB) maxA = maxB + 2; 
-
-            setupScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden');
-            
-            score = 0;
-            currentQ = 0;
-            correctCount = 0;
-            nextQuestion();
-        }
-
-        function nextQuestion() {
-            if (currentQ >= totalQuestions) {
-                endGame();
+            if(cfg.minA > cfg.maxA || cfg.minB > cfg.maxB) {
+                alert("Nilai Minimal tidak boleh lebih besar dari Maksimal!");
                 return;
             }
 
-            currentQ++;
-            document.getElementById('q-counter').innerText = `${currentQ} / ${totalQuestions}`;
-            feedbackText.innerText = "";
-            canAnswer = true;
-
-            // Generate Soal (A - B = ?)
-            // Pastikan A >= B agar hasilnya tidak negatif
-            let numB = Math.floor(Math.random() * maxB) + 1; // 1 s/d maxB
-            // Pastikan numA minimal sama dengan numB
-            let minA = numB; 
-            let numA = Math.floor(Math.random() * (maxA - minA + 1)) + minA;
-
-            let correctAnswer = numA - numB;
-
-            numAEl.innerText = numA;
-            numBEl.innerText = numB;
-
-            // Generate Pilihan Jawaban
-            generateOptions(correctAnswer);
-
-            // Reset Timer
-            startTimer();
+            document.getElementById('max-idx').textContent = cfg.total;
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            loadQuestion();
         }
 
-        function generateOptions(correct) {
-            optionsGrid.innerHTML = '';
-            let answers = new Set();
-            answers.add(correct);
+        function loadQuestion() {
+            if (game.cur > cfg.total) return finish();
+            game.can = true;
+            document.getElementById('feedback').textContent = "";
+            document.getElementById('cur-idx').textContent = game.cur;
+            
+            // Logika Pengurangan: A - B (A harus >= B)
+            let b = Math.floor(Math.random() * (cfg.maxB - cfg.minB + 1)) + cfg.minB;
+            // Pastikan nilai minimal A yang diacak minimal sebesar b agar hasil tidak negatif
+            let actualMinA = Math.max(cfg.minA, b); 
+            let a = Math.floor(Math.random() * (cfg.maxA - actualMinA + 1)) + actualMinA;
+            
+            // Jika setting user memaksa hasil negatif (Misal Max A = 5, Min B = 10), kita tukar
+            if (a < b) { let temp = a; a = b; b = temp; }
 
-            while(answers.size < 4) {
-                // Jawaban pengecoh di sekitar jawaban benar
-                let wrong = correct + Math.floor(Math.random() * 5) - 2; 
-                if (wrong >= 0 && wrong !== correct) {
-                    answers.add(wrong);
-                }
+            game.ans = a - b;
+            document.getElementById('equation').textContent = `${a} - ${b}`;
+            
+            // Generate Pilihan (Setiap angka unik)
+            let opts = new Set([game.ans]);
+            while(opts.size < 4) {
+                let dev = Math.floor(Math.random() * 9) - 4; // -4 s/d +4
+                let wrong = game.ans + dev;
+                if(wrong >= 0 && !opts.has(wrong)) opts.add(wrong);
+                if(opts.size < 4 && dev > 10) opts.add(game.ans + opts.size + 1); // Safety break
             }
-
-            // Acak posisi
-            let answersArray = Array.from(answers).sort(() => Math.random() - 0.5);
-
-            answersArray.forEach(ans => {
-                let btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = ans;
-                btn.onclick = () => checkAnswer(ans, correct, btn);
-                optionsGrid.appendChild(btn);
+            
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            Array.from(opts).sort(() => Math.random() - 0.5).forEach(val => {
+                const btn = document.createElement('button');
+                btn.textContent = val;
+                btn.className = "option-btn";
+                btn.onclick = () => checkAns(val, btn);
+                grid.appendChild(btn);
             });
+            runTimer();
         }
 
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = timePerQuestion;
-            timerFill.style.transition = 'none';
-            timerFill.style.width = '100%';
-            
-            // Force reflow
-            void timerFill.offsetWidth;
+        function runTimer() {
+            clearInterval(game.inv);
+            game.time = cfg.time;
+            const bar = document.getElementById('timer-fill');
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+            setTimeout(() => {
+                bar.style.transition = `width ${cfg.time}s linear`;
+                bar.style.width = '0%';
+            }, 50);
 
-            timerFill.style.transition = `width ${timePerQuestion}s linear`;
-            timerFill.style.width = '0%';
-
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft < 0) {
-                    checkAnswer(-999, -1, null); // Waktu habis = salah
-                }
+            game.inv = setInterval(() => {
+                game.time -= 1;
+                if (game.time < 0) { clearInterval(game.inv); checkAns(null); }
             }, 1000);
         }
 
-        function checkAnswer(selected, correct, btnElement) {
-            if (!canAnswer) return;
-            canAnswer = false;
-            clearInterval(timerInterval);
+        function checkAns(val, btn) {
+            if (!game.can) return;
+            game.can = false;
+            clearInterval(game.inv);
+            const fb = document.getElementById('feedback');
 
-            const buttons = document.querySelectorAll('.option-btn');
-            
-            // Logika Benar/Salah
-            if (selected === correct) {
-                if(btnElement) btnElement.classList.add('correct');
-                score += (100 / totalQuestions); // Tambah skor proporsional
-                correctCount++;
-                feedbackText.innerText = "BENAR! 🎉";
-                feedbackText.className = "h-6 mt-4 text-sm font-bold text-green-500";
+            if (val === game.ans) {
+                game.score++;
+                document.getElementById('live-score').textContent = game.score;
+                fb.textContent = "BENAR! ✨";
+                fb.className = "h-8 mt-4 font-black text-2xl text-green-500 uppercase";
+                if(btn) btn.classList.add('correct');
             } else {
-                if(btnElement) btnElement.classList.add('wrong');
-                // Tunjukkan yang benar
-                buttons.forEach(b => {
-                    if (parseInt(b.innerText) === correct) b.classList.add('correct');
+                fb.textContent = val === null ? "WAKTU HABIS!" : "SALAH! ❌";
+                fb.className = "h-8 mt-4 font-black text-2xl text-red-500 uppercase";
+                if(btn) btn.classList.add('wrong');
+                // Tunjukkan jawaban benar
+                document.querySelectorAll('.option-btn').forEach(b => {
+                    if(parseInt(b.textContent) === game.ans) b.classList.add('correct');
                 });
-                feedbackText.innerText = "SALAH! 😢";
-                feedbackText.className = "h-6 mt-4 text-sm font-bold text-red-500";
             }
 
-            // Update skor sementara (dibulatkan)
-            document.getElementById('current-score').innerText = Math.round(score);
-
-            // Jeda sebelum soal berikutnya
-            setTimeout(() => {
-                nextQuestion();
-            }, 1000);
+            setTimeout(() => { game.cur++; loadQuestion(); }, 1200);
         }
 
-        function endGame() {
-            gameScreen.classList.add('hidden');
-            
-            // WAJIB: Munculkan layar hasil agar terbaca oleh sistem 'index.html'
-            resultScreen.classList.remove('hidden');
-
-            const finalScoreVal = Math.round(score);
-            
-            // WAJIB: Masukkan nilai ke elemen dengan ID 'final-score'
-            document.getElementById('final-score').innerText = finalScoreVal;
-            
-            document.getElementById('stat-correct').innerText = correctCount;
-            document.getElementById('stat-total').innerText = totalQuestions;
+        function finish() {
+            document.getElementById('game-screen').classList.add('hidden');
+            const final = Math.round((game.score / cfg.total) * 100);
+            document.getElementById('final-score').textContent = final;
+            document.getElementById('result-screen').classList.remove('hidden');
         }
     </script>
-
 </body>
 </html>
